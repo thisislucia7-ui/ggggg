@@ -147,11 +147,11 @@ const SPECIES=[
  ['penguin','企企','企鵝','bird','bird',blob,{c:'#36404f',sh:'#2a323e',face:'penguin',snout:'beak',wing:'#2a323e',feet:'#f59e2a'}],
  ['owl','咕咕','貓頭鷹','bird','bird',blob,{c:'#b0805a',ear:'owl',ec:'#8a5f3e',face:'disc',fc:'#f3dcc0',snout:'beak',ring:'#fff8e0',er:8,wing:'#8a5f3e',feet:'#f59e2a',noBlush:1}],
  ['frog','呱呱','青蛙','bird','bird',blob,{c:'#8fd06a',sh:'#74b852',ear:'frog',ring:'#fff',face:'#e6f6c8'}],
- ['surprisefish','驚驚','驚訝魚','sea','sea',fishGuy,{c:'#a9a9ad',pants:'#b8ec5c'}],
- ['hoodiefox','狐小帽','帽T狐狸','dog','dog',blob,{c:'#f0783c',ear:'fox',ei:'#ffffff',face:'#fff6ea',snout:'dog',sc:'#fff6ea',hoodie:'#2c3a5e'}],
- ['wombat','毛毛','袋熊','small','herb',blob,{c:'#8c7b6b',sh:'#6f5f50',ear:'small',ec:'#7a6a5a',ei:'#c99a6a',snout:'wombat',pat:'speckle',pc:'#4a3c30',paws:'#6a4a30',claws:1}],
+ ['surprisefish','歐摸君','驚訝魚','sea','sea',fishGuy,{c:'#a9a9ad',pants:'#b8ec5c'}],
+ ['hoodiefox','竹子狐','帽T狐狸','dog','dog',blob,{c:'#f0783c',ear:'fox',ei:'#ffffff',face:'#fff6ea',snout:'dog',sc:'#fff6ea',hoodie:'#2c3a5e'}],
+ ['wombat','毛毛','澳洲袋熊','small','herb',blob,{c:'#8c7b6b',sh:'#6f5f50',ear:'small',ec:'#7a6a5a',ei:'#c99a6a',snout:'wombat',pat:'speckle',pc:'#4a3c30',paws:'#6a4a30',claws:1}],
  ['mochi','桃麻糬','粉紅麻糬','small','herb',blob,{c:'#ffb8c8',sh:'#f59ab2',ear:'sprout',wing:'#ffc8d4',paws:'#fff0f3'}],
- ['penguinchick','小灰','企鵝寶寶','bird','sea',blob,{c:'#b4b4be',sh:'#9a9aa6',face:'emperor',belly:'#ffffff',snout:'beak',beak:'#2e2a30',wing:'#a2a2ae',paws:'#2e2a30',noBlush:0}]
+ ['penguinchick','呆呆','企鵝寶寶','bird','sea',blob,{c:'#b4b4be',sh:'#9a9aa6',face:'emperor',belly:'#ffffff',snout:'beak',beak:'#2e2a30',wing:'#a2a2ae',paws:'#2e2a30',noBlush:0}]
 ];
 const SP={};SPECIES.forEach(([id,n,breed,fam,grp,fn,o])=>SP[id]={id,n,breed,fam,grp,o,bg:mix(o.c,'#ffffff',.72),draw:e=>fn(o,e)});
 function petSvg(sp,e){return (SP[sp]||SP.dango).draw(e||'happy')}
