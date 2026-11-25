@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>轉身成為小寵物</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -526,6 +526,11 @@ button:not(:disabled):active{transform:translateY(2px) scale(.98)}
 
 /* ===== 分頁式介面、三橫線選單、好友家互動 ===== */
 input,textarea,select{font-size:16px!important;font-family:inherit}
+html,body,button,a,.stage,.pw,.mess,.fu{touch-action:manipulation}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,.stage,.pw,.mess{-webkit-tap-highlight-color:transparent}
+#ovGame,#ovGame *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#ovGame .g-cv{touch-action:none}
 .bnav{display:none!important}
 .fab{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:13;width:62px;height:62px;border-radius:50%;background:var(--berry);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;box-shadow:0 8px 20px -8px #a02050,0 4px 0 light-dark(#b83a60,#a04060)}
 .fab span{display:block;width:26px;height:3.5px;border-radius:2px;background:#fff}
