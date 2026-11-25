@@ -122,3 +122,36 @@ async function accountAction(){const st=accState();
  else if(st==='in'){location.reload()}
  else if(st==='claude'){openProfile();toast('這裡是用你的 Claude 帳號登入；要換帳號，請在 claude.ai 登出後再打開')}
  else toast('這個版本沒有帳號功能，紀錄只存在這台裝置')}
+
+// ---------- 好友邀請即時通知 ----------
+document.head.insertAdjacentHTML('beforeend',`<style>
+.reqpop{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top));translate:-50% 0;z-index:25;width:min(380px,calc(100% - 24px));background:var(--card);border-radius:20px;padding:12px 14px;box-shadow:0 14px 30px -12px #0008;border:2px solid var(--berry);display:grid;grid-template-columns:52px minmax(0,1fr);gap:4px 12px;align-items:center;animation:reqin .4s cubic-bezier(.3,1.5,.6,1)}
+@keyframes reqin{from{transform:translateY(-140%)}}
+.reqpop .av{grid-row:span 2;width:52px;height:52px;border-radius:14px;overflow:hidden;background:var(--bg)}.reqpop .av svg{width:100%;height:100%}
+.reqpop p{margin:0;font-size:15px}.reqpop p b{font-family:"Huninn",sans-serif;font-weight:400;color:var(--berry)}
+.reqpop .inrow button{min-height:36px;padding:4px 12px;font-size:14px;flex:1}
+.menugrid [data-extra=friends] i{background:#ffc94a;color:#3b2a2a}
+</style>`);
+let reqQueue=[],reqShown=null;
+function pendingReqs(){if(NET.state!=='online')return[];const me=NET.uid;return Object.entries(NET.homes).filter(([id,h])=>id!==me&&h&&Array.isArray(h.friends)&&h.friends.includes(me)&&!S.friends.includes(id)&&!S.ignored.includes(id)).map(([id])=>id)}
+function checkFriends(){if(NET.state!=='online'||!S.pets.length)return;S.reqSeen=S.reqSeen||[];S.mutualSeen=S.mutualSeen||[];
+ for(const id of pendingReqs())if(!S.reqSeen.includes(id)&&!reqQueue.includes(id)&&reqShown!==id)reqQueue.push(id);
+ for(const id of S.friends){const h=netHome(id);if(h&&Array.isArray(h.friends)&&h.friends.includes(NET.uid)&&!S.mutualSeen.includes(id)){S.mutualSeen.push(id);save();
+  if(S.mutualSeen.length>0&&!$('ovTitle').classList.contains('on')){toast(`${nickOf(id)} 接受了你的好友邀請，你們是好朋友了！`);sfx('chime')}}}
+ showNextReq();renderWorldUI()}
+function showNextReq(){if(reqShown||!reqQueue.length||$('ovTitle').classList.contains('on'))return;const id=reqQueue.shift(),h=netHome(id);if(!h)return showNextReq();reqShown=id;
+ const pet=(Array.isArray(h.pets)?h.pets:[]).find(p=>p&&SP[p.sp]);
+ const el=document.createElement('div');el.className='reqpop';el.setAttribute('role','alert');
+ el.innerHTML=`<div class="av">${pet?`<svg viewBox="0 0 200 190" style="background:${SP[pet.sp].bg}">${petSvg(pet.sp,'happy')}</svg>`:''}</div><p><b></b> 想跟你當好友！</p><div class="inrow"><button class="save" data-q="ok">接受</button><button class="ghost" data-q="no">略過</button><button class="ghost" data-q="later">之後再說</button></div>`;
+ el.querySelector('b').textContent=h.nick||'神秘玩家';document.body.append(el);sfx('chime');
+ el.onclick=e=>{const b=e.target.closest('[data-q]');if(!b)return;const q=b.dataset.q;
+  if(q==='ok'){if(!S.friends.includes(id))S.friends.push(id);S.mutualSeen.push(id);save();netFlush(S);sfx('heart');toast(`你和 ${h.nick||'新朋友'} 成為好友了！`);remember(P(),`和 ${h.nick||'新朋友'} 成為好朋友`)}
+  if(q==='no'){S.ignored.push(id);save()}
+  if(q==='later'){S.reqSeen.push(id);save();toast('之後可以在「好友」裡接受邀請')}
+  el.remove();reqShown=null;renderWorldUI();if($('ovFriends').classList.contains('on'))renderFriends();setTimeout(showNextReq,400)}}
+const _oc=NET.onChange;NET.onChange=k=>{_oc&&_oc(k);if(k==='homes')checkFriends()};
+const _ent=enterRoom;enterRoom=function(){_ent();setTimeout(checkFriends,3500)};
+// 徽章：未讀訊息＋好友邀請
+const _rwu3=renderWorldUI;renderWorldUI=function(){_rwu3();if(typeof pendingReqs!=='function')return;const r=pendingReqs().length,m=NET.state==='online'?netInbox(NET.uid).filter(x=>x.ts>(S.lastRead||0)).length:0,n=r+m;
+ $('fabBadge').textContent=n||'';$('fabBadge').hidden=!n;$('btnFriends').innerHTML=`好友${r+m?`<b>${r+m}</b>`:''}`};
+const _rm2=renderMenu;renderMenu=function(){_rm2();const r=pendingReqs().length,b=document.querySelector('#menuGrid [data-extra=friends]');if(b&&r)b.insertAdjacentHTML('beforeend',`<i>${r}</i>`)};
