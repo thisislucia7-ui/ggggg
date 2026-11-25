@@ -59,7 +59,11 @@ async function fbLogin(kind,email,pass){
  try{const fn=kind==='up'?'createUserWithEmailAndPassword':'signInWithEmailAndPassword';const r=await NET.auth[fn](email,pass);if(NET.loginWait){NET.loginWait(r.user);NET.loginWait=null}return ''}
  catch(e){return({'auth/invalid-email':'電子郵件格式不對喔','auth/missing-password':'請輸入密碼','auth/weak-password':'密碼至少要 6 個字','auth/email-already-in-use':'這個電子郵件已經註冊過了，請直接登入',
   'auth/invalid-credential':'電子郵件或密碼不正確','auth/wrong-password':'電子郵件或密碼不正確','auth/user-not-found':'找不到這個帳號，要不要先註冊？','auth/too-many-requests':'嘗試太多次了，請稍後再試',
-  'auth/network-request-failed':'網路連線有問題，請稍後再試'})[e&&e.code]||'登入失敗，請再試一次'}}
+  'auth/network-request-failed':'網路連線有問題，請稍後再試',
+  'auth/operation-not-allowed':'網站還沒開啟「電子郵件/密碼」登入，請到 Firebase 主控台的 Authentication 啟用',
+  'auth/configuration-not-found':'網站還沒開啟 Firebase 登入功能，請到 Firebase 主控台的 Authentication 按「開始使用」並啟用「電子郵件/密碼」',
+  'auth/unauthorized-domain':'這個網址還沒被 Firebase 允許登入，請到 Authentication 的「設定 → 已授權網域」加入',
+  'auth/api-key-not-valid.-please-pass-a-valid-api-key.':'網站的 Firebase 設定不正確（API 金鑰無效）'})[e&&e.code]||`登入失敗（${(e&&e.code)||'未知錯誤'}），請把這段訊息告訴我`}}
 async function fbReset(email){try{await NET.auth.sendPasswordResetEmail(email);return '已寄出重設密碼的信，請到信箱收信'}catch(e){return e&&e.code==='auth/invalid-email'?'電子郵件格式不對喔':'寄送失敗，請確認電子郵件是否正確'}}
 function fbSkip(){if(NET.loginWait){NET.loginWait(null);NET.loginWait=null}}
 async function fbLogout(){try{await NET.auth.signOut()}catch(e){}}
