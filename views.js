@@ -84,7 +84,7 @@ $('vFeed').onclick=async()=>{const p=vPets[vSel];if(!p)return;const L=vlog(visit
  if(ok){L.feed++;save();setTimeout(renderBoard,900)}else toast('送不出去，可能你目前只有瀏覽權限');setTimeout(vRefresh,900)};
 // PK 友誼賽：撲撲 > 裝可愛 > 閃閃 > 撲撲
 const MV={pounce:'撲撲',dodge:'閃閃',cute:'裝可愛'},BEATS={pounce:'cute',cute:'dodge',dodge:'pounce'};
-const PKW={grumpy:{pounce:3,dodge:1,cute:1},tsun:{pounce:2,dodge:2,cute:1},clingy:{pounce:1,dodge:1,cute:3},shy:{pounce:1,dodge:3,cute:1},playful:{pounce:2,dodge:2,cute:2},foodie:{pounce:2,dodge:1,cute:2},lazy:{pounce:1,dodge:2,cute:2},neat:{pounce:1,dodge:2,cute:2}};
+const PKW={grumpy:{pounce:3,dodge:1,cute:1},tsun:{pounce:2,dodge:2,cute:1},clingy:{pounce:1,dodge:1,cute:3},shy:{pounce:1,dodge:3,cute:1},playful:{pounce:2,dodge:2,cute:2},foodie:{pounce:2,dodge:1,cute:2},lazy:{pounce:1,dodge:2,cute:2},neat:{pounce:1,dodge:2,cute:2},aloof:{pounce:1,dodge:3,cute:1}};
 let pk=null;
 const pkHearts=n=>heartsHtml(n,3);
 function pkDraw(){$('pkMe').innerHTML=`<svg viewBox="0 0 200 190" style="transform:scaleX(-1)">${petSvg(P().sp,pk.me>1?'happy':'calm')}</svg><b>${esc(P().name)}</b>${pkHearts(pk.me)}`;

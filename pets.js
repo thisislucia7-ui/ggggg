@@ -25,10 +25,12 @@ function blob(o,e){
   long:`<g class="ear"><ellipse cx="72" cy="30" rx="15" ry="30" fill="${ec}" transform="rotate(-8 72 60)"/><ellipse cx="72" cy="32" rx="7" ry="22" fill="${ei}" transform="rotate(-8 72 60)"/></g><ellipse cx="128" cy="30" rx="15" ry="30" fill="${ec}" transform="rotate(8 128 60)"/><ellipse cx="128" cy="32" rx="7" ry="22" fill="${ei}" transform="rotate(8 128 60)"/>`,
   pig:`<g class="ear"><path d="M40 62 44 26 78 42z" fill="${ec}"/><path d="M48 54 50 34 68 44z" fill="${ei}"/></g><path d="M160 62 156 26 122 42z" fill="${ec}"/><path d="M152 54 150 34 132 44z" fill="${ei}"/>`,
   frog:`<circle cx="64" cy="52" r="26" fill="${c}"/><circle cx="136" cy="52" r="26" fill="${c}"/>`,
+  huge:`<g class="ear"><path d="M46 70 8 6 86 40z" fill="${ec}"/><path d="M46 58 20 18 70 42z" fill="${ei}"/></g><path d="M154 70 192 6 114 40z" fill="${ec}"/><path d="M154 58 180 18 130 42z" fill="${ei}"/>`,
+  bat:`<g class="ear"><ellipse cx="48" cy="34" rx="20" ry="30" fill="${ec}" transform="rotate(-22 48 34)"/><ellipse cx="48" cy="36" rx="10" ry="20" fill="${ei}" transform="rotate(-22 48 36)"/></g><ellipse cx="152" cy="34" rx="20" ry="30" fill="${ec}" transform="rotate(22 152 34)"/><ellipse cx="152" cy="36" rx="10" ry="20" fill="${ei}" transform="rotate(22 152 36)"/>`,
   sprout:`<path d="M100 34c-1-14 5-24 16-26-2 11-7 20-16 26z" fill="#7cc46a"/><path d="M100 34c-5-11-13-15-22-13 4 9 11 13 22 13z" fill="#5fb04a"/><path d="M100 34v-8" stroke="#4a9a40" stroke-width="2.5"/>`,
   tuft:`<path d="M98 34c-4-14 2-24 8-26-2 8 0 16-2 26zM104 34c4-12 14-16 20-14-6 4-10 10-14 16z" fill="${mix(c,'#f59e2a',.3)}"/>`,
   owl:`<path d="M40 52 34 14 72 36z" fill="${ec}"/><path d="M160 52 166 14 128 36z" fill="${ec}"/>`,
-  none:''}[o.ear||'none'];
+  none:''}[o.ear||'none']||'';
  const front={
   floppy:`<ellipse class="wave" cx="34" cy="88" rx="17" ry="34" fill="${ec}" transform="rotate(18 34 88)"/><ellipse cx="166" cy="88" rx="17" ry="34" fill="${ec}" transform="rotate(-18 166 88)"/>`,
   lop:`<ellipse class="wave" cx="30" cy="104" rx="17" ry="46" fill="${ec}" transform="rotate(10 30 104)"/><ellipse cx="170" cy="104" rx="17" ry="46" fill="${ec}" transform="rotate(-10 170 104)"/>`}[o.ear]||'';
@@ -40,6 +42,8 @@ function blob(o,e){
  if(o.pat==='panda')pat=`<ellipse cx="72" cy="94" rx="15" ry="20" fill="#2e2a30" transform="rotate(30 72 94)"/><ellipse cx="128" cy="94" rx="15" ry="20" fill="#2e2a30" transform="rotate(-30 128 94)"/>`;
  if(o.pat==='curl')pat=`<g fill="${o.cc}"><circle cx="72" cy="40" r="17"/><circle cx="100" cy="30" r="19"/><circle cx="128" cy="40" r="17"/></g>`;
  if(o.pat==='speckle')pat=[[52,70],[70,52],[130,56],[150,74],[44,104],[158,110],[60,140],[146,146],[84,46],[116,44],[40,130],[164,132]].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${1.6+(i%3)*.8}" fill="${pc}" opacity=".55"/>`).join('');
+ if(o.pat==='tanhead')pat=`<path d="M100 30c-46 0-78 34-84 84 22 0 40 4 56 14 8-10 18-14 28-14s20 4 28 14c16-10 34-14 56-14-6-50-38-84-84-84z" fill="${pc}"/><path d="M95 34q5-4 10 0l-1 58q-4 3-8 0z" fill="${c}"/><ellipse cx="160" cy="150" rx="16" ry="12" fill="${pc}"/><path d="M34 140q10-12 26-6-4 14-20 16z" fill="${pc}"/>`;
+ if(o.pat==='ruff')pat=`<g fill="${o.pc}">${Array.from({length:11},(_,i)=>{const a=Math.PI*(.12+i*.076);return `<circle cx="${100-Math.cos(a)*78}" cy="${108+Math.sin(a)*58}" r="15"/>`}).join('')}</g>`;
  let face='';
  if(o.face==='penguin')face=`<path d="M100 62c30-30 72 0 64 48-6 38-32 64-64 64s-58-26-64-64c-8-48 34-78 64-48z" fill="#fff"/>`;
  else if(o.face==='disc')face=`<circle cx="74" cy="92" r="24" fill="${o.fc}"/><circle cx="126" cy="92" r="24" fill="${o.fc}"/>`;
@@ -50,11 +54,15 @@ function blob(o,e){
  const ey=o.ear==='frog'?52:92,ea=o.ear==='frog'?64:74,eb=o.ear==='frog'?136:126,er=o.er||7;
  let sn='',my=110,mw=12;
  if(o.snout==='dog'){sn=`<ellipse cx="100" cy="120" rx="28" ry="19" fill="${o.sc||mix(c,'#ffffff',.5)}"/><ellipse cx="100" cy="108" rx="9" ry="6.5" fill="${INK}"/>`;my=122;mw=9}
+ if(o.snout==='flat'){sn=`<ellipse cx="100" cy="118" rx="30" ry="18" fill="${o.sc||'#3a3036'}"/><ellipse cx="100" cy="108" rx="10" ry="6" fill="#1e1a1c"/><path d="M82 70q18-8 36 0M86 80q14-6 28 0" stroke="${mix(c,'#000000',.25)}" stroke-width="3" fill="none" stroke-linecap="round"/>`;my=124;mw=8}
  if(o.snout==='wombat'){sn=`<ellipse cx="100" cy="116" rx="21" ry="14" fill="#3a2e28"/><ellipse cx="93" cy="111" rx="5" ry="3" fill="#7a6a5e"/>`;my=136;mw=8}
  if(o.snout==='pig'){sn=`<ellipse cx="100" cy="114" rx="21" ry="15" fill="${mix(c,'#d0607a',.3)}"/><ellipse cx="93" cy="114" rx="3.5" ry="5.5" fill="#a0485a"/><ellipse cx="107" cy="114" rx="3.5" ry="5.5" fill="#a0485a"/>`;my=134;mw=8}
  let mo=mouth(100,my,mw,e);
  if(o.snout==='beak')mo=e==='happy'?`<path d="M88 106l12-5 12 5-12 6z" fill="${o.beak||'#f59e2a'}"/><path d="M91 111l9 10 9-10z" fill="#d9536f" stroke="#c86a1a" stroke-width="1.5"/>`:`<path d="M88 106l12-5 12 5-12 12z" fill="${o.beak||'#f59e2a'}"/>`;
  const wing=o.wing?`<ellipse class="wave" cx="26" cy="128" rx="14" ry="28" fill="${o.wing}" transform="rotate(24 26 128)"/><ellipse cx="174" cy="128" rx="14" ry="28" fill="${o.wing}" transform="rotate(-24 174 128)"/>`:'';
+ const brows=o.brows?`<path d="M54 76q20-16 40 2M146 76q-20-16-40 2" stroke="${o.brows}" stroke-width="9" stroke-linecap="round" fill="none"/>`:'';
+ const beard=o.beard?`<path d="M74 118q26 40 52 0q4 20-10 32-16 10-32 0-14-12-10-32z" fill="${o.beard}"/>`:'';
+ const collar=o.collar?`<path d="M44 156q56 22 112 0" stroke="${o.collar}" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="100" cy="168" r="6" fill="#f0c040" stroke="#c99a20" stroke-width="2"/>`:'';
  const hood=o.hoodie?`<path d="M28 112c-6-52 30-88 72-88s78 36 72 88" fill="none" stroke="${o.hoodie}" stroke-width="18" stroke-linecap="round"/>`:'';
  const hoodie=o.hoodie?`<path d="M22 136c6 28 36 44 78 44s72-16 78-44c-14-12-42-18-78-18s-64 6-78 18z" fill="${o.hoodie}"/><path d="M20 128c-8 8-10 20-4 28 8-2 14-10 16-20zM180 128c8 8 10 20 4 28-8-2-14-10-16-20z" fill="${o.hoodie}"/><path d="M76 156h48v14q0 4-4 4H80q-4 0-4-4z" fill="${mix(o.hoodie,'#000000',.15)}"/><path d="M100 142c-4-3-7-5-7-8a3 3 0 0 1 7-1 3 3 0 0 1 7 1c0 3-3 5-7 8z" fill="#ff7c9c"/>`:'';
  const feet=o.paws?`<ellipse cx="70" cy="176" rx="20" ry="9" fill="${o.paws}"/><ellipse cx="130" cy="176" rx="20" ry="9" fill="${o.paws}"/>${o.claws?`<path d="M58 179l-2 6M66 181l-1 6M74 181l1 6M82 179l2 6M118 179l-2 6M126 181l-1 6M134 181l1 6M142 179l2 6" stroke="#3a2e28" stroke-width="2.5" stroke-linecap="round"/>`:''}`:o.feet?`<path d="M64 176h20M70 170v8M116 176h20M126 170v8" stroke="${o.feet}" stroke-width="6" stroke-linecap="round"/>`:`<ellipse cx="70" cy="176" rx="18" ry="8" fill="${sh}"/><ellipse cx="130" cy="176" rx="18" ry="8" fill="${sh}"/>`;
@@ -63,7 +71,7 @@ function blob(o,e){
  <path d="M100 30c52 0 84 42 84 92 0 40-34 60-84 60s-84-20-84-60c0-50 32-92 84-92z" fill="${c}"/>
  <path d="M30 140c6 26 34 38 70 38s64-12 70-38c-10 18-36 28-70 28s-60-10-70-28z" fill="${sh}"/>
  ${pat}${face}<path d="M58 54c10-10 26-14 40-14" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none" opacity=".7"/>
- ${hoodie}${front}${wing}${o.noBlush?'':blush(56,144,114)}${eyes(ea,eb,ey,er,e,o.ring,o.dark)}${sn}${mo}${feet}`}
+ ${hoodie}${collar}${front}${wing}${o.noBlush?'':blush(56,144,114)}${eyes(ea,eb,ey,er,e,o.ring,o.dark)}${brows}${sn}${beard}${mo}${feet}`}
 
 function dino(o,e){const c=o.c,dk=mix(c,'#000000',.12),b=o.b||'#f4f0c9',d=o.d;
  return `<ellipse cx="100" cy="183" rx="72" ry="7" fill="#000" opacity=".12"/>
@@ -125,6 +133,13 @@ const SPECIES=[
  ['shiba','豆柴','柴犬','dog','dog',blob,{c:'#e8a05a',ear:'tri',ei:'#fff1de',face:'#fff6ea',snout:'dog',sc:'#fff6ea',tail:'#e8a05a'}],
  ['corgi','短短','柯基','dog','dog',blob,{c:'#f0a457',ear:'big',ei:'#ffd9c0',face:'#ffffff',snout:'dog',sc:'#ffffff'}],
  ['poodle','捲捲','貴賓狗','dog','dog',blob,{c:'#c8855a',ear:'floppy',ec:'#b5744c',pat:'curl',cc:'#d4956a',snout:'dog',sc:'#dba57e'}],
+ ['chocolate','巧克力','台灣米克斯','dog','dog',blob,{c:'#fbf5ee',sh:'#eadfd2',ear:'big',ec:'#d9944e',ei:'#e8b585',pat:'tanhead',pc:'#dc9a55',snout:'dog',sc:'#fbf5ee',collar:'#f0503a',tail:'#f0dcc0'}],
+ ['golden','金金','黃金獵犬','dog','dog',blob,{c:'#e8b25c',ear:'floppy',ec:'#d99a44',face:'#f6d9a4',snout:'dog',sc:'#f8e2b8',tail:'#e8b25c'}],
+ ['pomeranian','蓬蓬','博美','dog','dog',blob,{c:'#f4a24a',ear:'small',ei:'#ffd0a8',pat:'ruff',pc:'#ffc98a',face:'#ffe6c4',snout:'dog',sc:'#ffe6c4'}],
+ ['chihuahua','吉吉','吉娃娃','dog','dog',blob,{c:'#e6b98a',ear:'huge',ei:'#ffc8b4',face:'#f7e2c8',snout:'dog',sc:'#f7e2c8',er:8}],
+ ['frenchie','法法','法國鬥牛犬','dog','dog',blob,{c:'#d9c2a6',ear:'bat',ec:'#c9ae8e',ei:'#f0b8b0',snout:'flat'}],
+ ['schnauzer','鬍子','雪納瑞','dog','dog',blob,{c:'#8e9099',ear:'floppy',ec:'#6e7079',brows:'#f4f4f6',beard:'#f4f4f6',snout:'dog',sc:'#b8bac2'}],
+ ['dachshund','香腸','臘腸狗','dog','dog',blob,{c:'#a8603a',ear:'lop',ec:'#8a4a2a',face:'#c98a5e',snout:'dog',sc:'#c98a5e',tail:'#a8603a'}],
  ['husky','二哈','哈士奇','dog','dog',blob,{c:'#8c97a8',ear:'tri',ei:'#ffffff',face:'#ffffff',snout:'dog',sc:'#ffffff'}],
  ['dalmatian','點點','大麥町','dog','dog',blob,{c:'#ffffff',sh:'#e6e2dc',ear:'floppy',ec:'#3a3340',pat:'spots',pc:'#3a3340',snout:'dog',sc:'#f3eee8'}],
  ['fox','火火','狐狸','dog','dog',blob,{c:'#f08a3c',ear:'fox',ei:'#ffe0c4',face:'#fff6ea',snout:'dog',sc:'#fff6ea',tail:'#f08a3c'}],
