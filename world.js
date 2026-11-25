@@ -25,7 +25,7 @@ function syncPets(){const L=$('petsL'),ids=new Set(S.pets.map(p=>p.id));
   w.classList.toggle('cur',cur&&S.pets.length>1);const wet=!!(p.wetUntil&&p.wetUntil>Date.now());w.querySelector('.ptag').textContent=wet?p.name+'・濕答答':p.name;w.classList.toggle('wet',wet);if(wet)addDrips(p)});
  posBubble()}
 function posBubble(){const p=P();if(!p||!POS[p.id])return;$('bubble').style.left=Math.max(26,Math.min(74,POS[p.id].x))+'%'}
-setInterval(()=>{if(editMode||!S.pets.length)return;const one=S.pets.length===1;
+setInterval(()=>{if(editMode||!S.pets.length||(typeof inRoom!=='undefined'&&inRoom))return;const one=S.pets.length===1;
  S.pets.forEach(p=>{if((busy&&p===P())||p.id===summoned||(fight&&(fight.a===p||fight.b===p)))return;if(Math.random()>.35)return;
   POS[p.id]=one?{x:32+Math.random()*36,y:5+Math.random()*8}:freeSpot(p);const w=wOf(p);w&&place(w,POS[p.id])});posBubble()},3200);
 function freeSpot(p){let best=null,bd=-1;for(let k=0;k<6;k++){const c={x:10+Math.random()*80,y:3+Math.random()*14};const d=Math.min(...S.pets.filter(q=>q!==p&&POS[q.id]).map(q=>Math.abs(POS[q.id].x-c.x)),99);if(d>bd){bd=d;best=c}}return best}
@@ -50,7 +50,7 @@ $('messL').onclick=e=>{const b=e.target.closest('[data-mid]');if(!b||editMode)re
  setTimeout(()=>{S.mess=S.mess.filter(x=>x.id!==m.id);earn(MESS[m.t].c);sfx('chime');for(let i=0;i<4;i++){const s=document.createElement('span');s.className='spark';s.textContent='✦';s.style.left=(m.x-4+Math.random()*8)+'%';s.style.bottom=(Number(m.y)+Math.random()*8)+'%';$('stage').append(s);setTimeout(()=>s.remove(),1100)}
   if(!S.mess.length)say(pick(['家裡變得亮晶晶的，謝謝你！','好乾淨！我們可以在地上打滾了～']));save();renderMess();render()},550)};
 // 每 5 秒：到時間的寵物會便便、偶爾弄亂家裡、濕身太久會自己甩水
-setInterval(()=>{if(!P()||editMode||playing||document.querySelector('.ov.on'))return;const now=Date.now();
+setInterval(()=>{if(!P()||editMode||playing||(typeof inRoom!=='undefined'&&inRoom)||document.querySelector('.ov.on'))return;const now=Date.now();
  S.pets.forEach(p=>{if(p.poopAt&&now>p.poopAt&&!(busy&&p===P())&&!fight){p.poopAt=0;const pos=POS[p.id]||{x:50,y:8};animEl(wOf(p)?.querySelector('.pet'),'squat',1200);
    setTimeout(()=>{addMess('poop',pos.x+7,Math.max(0,pos.y-3));sfx('pop');say(`${p.name}：「嗯……不好意思，我嗯嗯了～」`)},900)}
   if(p.wetUntil&&now>p.wetUntil&&!fight)shakeDry(p)});
@@ -93,7 +93,7 @@ function endFight(r){if(!fight)return;const {a,b}=fight;clearInterval(fight.snd)
  else if(r==='split'){[a,b].forEach(p=>{p.joy=clamp(p.joy-8);animEl(wOf(p)?.querySelector('.pet'),'purr',1200)});earn(4);addMess('fur',44,6);addMess('fur',58,10);sfx('heart');say('呼……終於拉開了。牠們有點委屈，記得摸摸安慰一下喔。')}
  else{[a,b].forEach(p=>{p.joy=clamp(p.joy-18);p.aff=Math.max(0,p.aff-3)});['fur','fur','paper'].forEach(t=>addMess(t,35+Math.random()*30,3+Math.random()*10));sfx('lose');say(`${a.name}和${b.name}氣呼呼地分開了……友好度下降了，下次要早點勸架！`)}
  fight=null;busy=false;save();render()}
-setInterval(()=>{if(S.pets.length<2||busy||fight||editMode||playing||document.querySelector('.ov.on')||Date.now()-lastFight<80000)return;
+setInterval(()=>{if(S.pets.length<2||busy||fight||editMode||playing||(typeof inRoom!=='undefined'&&inRoom)||document.querySelector('.ov.on')||Date.now()-lastFight<80000)return;
  const avg=S.pets.reduce((a,p)=>a+p.joy,0)/S.pets.length;if(Math.random()<.1+(avg<40?.15:0)+(S.mess.length>4?.08:0)){const a=pick(S.pets);startFight(a,pick(S.pets.filter(q=>q!==a)))}},8000);
 function jealous(){if(S.pets.length<2||Math.random()>.12||Date.now()-lastFight<40000)return;const me=P();
  setTimeout(()=>{if(busy||fight||document.querySelector('.ov.on'))return;const o=pick(S.pets.filter(q=>q!==me));o&&startFight(o,me,'主人只顧著你！我也要！')},3400)}
