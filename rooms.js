@@ -69,7 +69,7 @@ function goRoom(kind,pets){const R=ROOMS[kind],st=$('stage');clearTimeout(roomT)
  add('roomfade','',820);sfx('swoosh');
  setTimeout(()=>{st.dataset.room=kind;$('scene').innerHTML=R.scene();$('frontL').innerHTML=R.front();
   const ids=new Set(pets.map(p=>p.id));S.pets.forEach(p=>wOf(p)?.classList.toggle('away',!ids.has(p.id)));
-  const n=pets.length;pets.forEach((p,i)=>{POS[p.id]=kind==='bath'?{x:n===1?50:32+i*(36/Math.max(1,n-1)),y:27}:{x:n===1?50:22+i*(56/Math.max(1,n-1)),y:8};const w=wOf(p);if(w){w.classList.add('come');place(w,POS[p.id]);setTimeout(()=>w.classList.remove('come'),650)}});
+  const n=pets.length;pets.forEach((p,i)=>{POS[p.id]=kind==='bath'?{x:n===1?46:30+i*(32/Math.max(1,n-1)),y:27}:{x:n===1?44:14+i*(54/Math.max(1,n-1)),y:8};const w=wOf(p);if(w){w.classList.add('come');place(w,POS[p.id]);setTimeout(()=>w.classList.remove('come'),650)}});
   st.querySelector('.roomtag')?.remove();st.insertAdjacentHTML('beforeend',`<div class="roomtag">${R.ic}${R.n}</div>`);posBubble()},400)}
 function goHome(delay){clearTimeout(roomT);roomT=setTimeout(()=>{if(!inRoom||viewRoom)return;add('roomfade','',820);
  setTimeout(()=>{inRoom=null;const st=$('stage');delete st.dataset.room;$('frontL').innerHTML='';st.querySelector('.roomtag')?.remove();
