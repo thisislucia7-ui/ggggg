@@ -1,0 +1,67 @@
+name: 測試版預覽
+
+# 每個 Pull Request 都會部署到一個獨立的測試網址（不影響正式網站），
+# 並把網址留言在 PR 上。合併後，正式網站才會更新。
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  preview:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 讀取服務帳戶金鑰
+        id: sa
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SA" ]; then
+            echo "::error::還沒設定 GitHub Secret「FIREBASE_SERVICE_ACCOUNT」。"
+            exit 1
+          fi
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa.json" >> "$GITHUB_ENV"
+          echo "project=$(jq -r .project_id "$RUNNER_TEMP/sa.json")" >> "$GITHUB_OUTPUT"
+
+      - name: 自動填入網站的 Firebase 設定
+        env:
+          PID: ${{ steps.sa.outputs.project }}
+        run: |
+          if grep -q "FIREBASE_CONFIG = null" fbconfig.js; then
+            FB="npx -y firebase-tools@13"
+            APPID=$($FB apps:list WEB --project "$PID" --json | jq -r '.result[0].appId // empty')
+            CFG=$($FB apps:sdkconfig WEB "$APPID" --project "$PID" --json | jq -c '.result.sdkConfig // empty')
+            if [ -n "$CFG" ]; then printf 'window.FIREBASE_CONFIG = %s;\n' "$CFG" > fbconfig.js; fi
+          fi
+
+      - name: 部署測試版
+        id: deploy
+        env:
+          PID: ${{ steps.sa.outputs.project }}
+          PR: ${{ github.event.number }}
+        run: |
+          OUT=$(npx -y firebase-tools@13 hosting:channel:deploy "pr$PR" --expires 14d --project "$PID" --json)
+          URL=$(echo "$OUT" | jq -r '.result[].url' | head -1)
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "### 測試版網址：$URL" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 在 PR 留下測試網址
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          URL: ${{ steps.deploy.outputs.url }}
+          PR: ${{ github.event.number }}
+        run: |
+          printf '測試版已更新：%s\n\n這是這個 PR 專用的測試網站，和正式網站共用同一個登入系統與資料庫，建議用測試帳號登入。合併後正式網站才會更新；測試網址 14 天後自動失效，每次推送新修改都會重新部署。\n' "$URL" > "$RUNNER_TEMP/body.md"
+          gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -F body=@"$RUNNER_TEMP/body.md" --jq .html_url

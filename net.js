@@ -10,7 +10,7 @@
 const NET={mode:'offline',state:'loading',db:null,user:null,auth:null,uid:null,email:'',ro:false,homes:{},out:{},boards:{},watched:{},listeners:[],onChange:null,saveBusy:false,saveAgain:false,homeSent:'',saveTimer:null,loginWait:null};
 const FB_VER='10.12.2';
 const fire=k=>NET.onChange&&NET.onChange(k);
-function netCode(uid){let h=2166136261;for(const c of uid)h=Math.imul(h^c.charCodeAt(0),16777619)>>>0;return h.toString(36).toUpperCase().padStart(7,'0').slice(-6)}
+function netCode(uid){let h=2166136261;for(const c of uid)h=Math.imul(h^c.charCodeAt(0),16777619)>>>0;return String(h%1000000).padStart(6,'0')}
 function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.append(s)})}
 async function netInit(){
  if(window.claude&&window.claude.use)return claudeInit();
@@ -59,7 +59,11 @@ async function fbLogin(kind,email,pass){
  try{const fn=kind==='up'?'createUserWithEmailAndPassword':'signInWithEmailAndPassword';const r=await NET.auth[fn](email,pass);if(NET.loginWait){NET.loginWait(r.user);NET.loginWait=null}return ''}
  catch(e){return({'auth/invalid-email':'電子郵件格式不對喔','auth/missing-password':'請輸入密碼','auth/weak-password':'密碼至少要 6 個字','auth/email-already-in-use':'這個電子郵件已經註冊過了，請直接登入',
   'auth/invalid-credential':'電子郵件或密碼不正確','auth/wrong-password':'電子郵件或密碼不正確','auth/user-not-found':'找不到這個帳號，要不要先註冊？','auth/too-many-requests':'嘗試太多次了，請稍後再試',
-  'auth/network-request-failed':'網路連線有問題，請稍後再試'})[e&&e.code]||'登入失敗，請再試一次'}}
+  'auth/network-request-failed':'網路連線有問題，請稍後再試',
+  'auth/operation-not-allowed':'網站還沒開啟「電子郵件/密碼」登入，請到 Firebase 主控台的 Authentication 啟用',
+  'auth/configuration-not-found':'網站還沒開啟 Firebase 登入功能，請到 Firebase 主控台的 Authentication 按「開始使用」並啟用「電子郵件/密碼」',
+  'auth/unauthorized-domain':'這個網址還沒被 Firebase 允許登入，請到 Authentication 的「設定 → 已授權網域」加入',
+  'auth/api-key-not-valid.-please-pass-a-valid-api-key.':'網站的 Firebase 設定不正確（API 金鑰無效）'})[e&&e.code]||`登入失敗（${(e&&e.code)||'未知錯誤'}），請把這段訊息告訴我`}}
 async function fbReset(email){try{await NET.auth.sendPasswordResetEmail(email);return '已寄出重設密碼的信，請到信箱收信'}catch(e){return e&&e.code==='auth/invalid-email'?'電子郵件格式不對喔':'寄送失敗，請確認電子郵件是否正確'}}
 function fbSkip(){if(NET.loginWait){NET.loginWait(null);NET.loginWait=null}}
 async function fbLogout(){try{await NET.auth.signOut()}catch(e){}}
@@ -74,7 +78,7 @@ function netSave(S){if(NET.state!=='online'||NET.ro)return;clearTimeout(NET.save
 async function netFlush(S){if(NET.state!=='online'||NET.ro)return;if(NET.saveBusy){NET.saveAgain=true;return}NET.saveBusy=true;
  netWatchFriends(S.friends);
  await netWrite(NET.db.doc(`data/users/${NET.uid}/save`),{state:JSON.stringify(S),ts:Date.now()});
- const home={nick:String(S.nick||'').slice(0,12),code:netCode(NET.uid),pets:S.pets.map(p=>({sp:p.sp,name:p.name,aff:p.aff,e:p.full<30||p.joy<30?'sad':'happy'})),decor:S.decor,friends:(S.friends||[]).slice(0,200),ts:0};
+ const home={nick:String(S.nick||'').slice(0,12),code:netCode(NET.uid),pets:S.pets.map(p=>({id:p.id,sp:p.sp,name:p.name,aff:p.aff,pers:p.pers||'',e:p.full<30||p.joy<30?'sad':'happy'})),decor:S.decor,friends:(S.friends||[]).slice(0,200),ts:0};
  const key=JSON.stringify(home);if(key!==NET.homeSent){home.ts=Date.now();if(await netWrite(NET.db.doc(`homes/${NET.uid}`),home))NET.homeSent=key}
  NET.saveBusy=false;if(NET.saveAgain){NET.saveAgain=false;netFlush(S)}}
 async function netSend(item){if(NET.state!=='online'||NET.ro)return false;
@@ -88,6 +92,6 @@ function netInbox(uid){
  if(NET.mode==='firebase')return (NET.boards[uid]||[]).filter(m=>m&&m.to===uid).slice().sort((a,b)=>b.ts-a.ts);
  const r=[];for(const [from,doc] of Object.entries(NET.out))for(const it of (doc&&doc.items)||[])if(it&&it.to===uid)r.push({...it,from});return r.sort((a,b)=>b.ts-a.ts)}
 const netHome=uid=>NET.homes[uid]||null;
-async function netFindCode(code){code=String(code||'').trim().toUpperCase();
- if(NET.mode==='firebase'){if(!/^[0-9A-Z]{6}$/.test(code))return null;try{const q=await NET.db.collection('homes').where('code','==',code).limit(1).get();if(q.empty)return null;const d=q.docs[0];NET.homes[d.id]=d.data();return d.id}catch(e){return null}}
+async function netFindCode(code){code=String(code||'').replace(/\D/g,'');
+ if(NET.mode==='firebase'){if(!/^[0-9]{6}$/.test(code))return null;try{const q=await NET.db.collection('homes').where('code','==',code).limit(1).get();if(q.empty)return null;const d=q.docs[0];NET.homes[d.id]=d.data();return d.id}catch(e){return null}}
  for(const [id,h] of Object.entries(NET.homes))if(h&&h.code===code)return id;return null}

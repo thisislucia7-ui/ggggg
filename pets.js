@@ -25,6 +25,7 @@ function blob(o,e){
   long:`<g class="ear"><ellipse cx="72" cy="30" rx="15" ry="30" fill="${ec}" transform="rotate(-8 72 60)"/><ellipse cx="72" cy="32" rx="7" ry="22" fill="${ei}" transform="rotate(-8 72 60)"/></g><ellipse cx="128" cy="30" rx="15" ry="30" fill="${ec}" transform="rotate(8 128 60)"/><ellipse cx="128" cy="32" rx="7" ry="22" fill="${ei}" transform="rotate(8 128 60)"/>`,
   pig:`<g class="ear"><path d="M40 62 44 26 78 42z" fill="${ec}"/><path d="M48 54 50 34 68 44z" fill="${ei}"/></g><path d="M160 62 156 26 122 42z" fill="${ec}"/><path d="M152 54 150 34 132 44z" fill="${ei}"/>`,
   frog:`<circle cx="64" cy="52" r="26" fill="${c}"/><circle cx="136" cy="52" r="26" fill="${c}"/>`,
+  sprout:`<path d="M100 34c-1-14 5-24 16-26-2 11-7 20-16 26z" fill="#7cc46a"/><path d="M100 34c-5-11-13-15-22-13 4 9 11 13 22 13z" fill="#5fb04a"/><path d="M100 34v-8" stroke="#4a9a40" stroke-width="2.5"/>`,
   tuft:`<path d="M98 34c-4-14 2-24 8-26-2 8 0 16-2 26zM104 34c4-12 14-16 20-14-6 4-10 10-14 16z" fill="${mix(c,'#f59e2a',.3)}"/>`,
   owl:`<path d="M40 52 34 14 72 36z" fill="${ec}"/><path d="M160 52 166 14 128 36z" fill="${ec}"/>`,
   none:''}[o.ear||'none'];
@@ -38,25 +39,31 @@ function blob(o,e){
  if(o.pat==='point')pat=`<ellipse cx="100" cy="114" rx="36" ry="28" fill="${pc}" opacity=".8"/>`;
  if(o.pat==='panda')pat=`<ellipse cx="72" cy="94" rx="15" ry="20" fill="#2e2a30" transform="rotate(30 72 94)"/><ellipse cx="128" cy="94" rx="15" ry="20" fill="#2e2a30" transform="rotate(-30 128 94)"/>`;
  if(o.pat==='curl')pat=`<g fill="${o.cc}"><circle cx="72" cy="40" r="17"/><circle cx="100" cy="30" r="19"/><circle cx="128" cy="40" r="17"/></g>`;
+ if(o.pat==='speckle')pat=[[52,70],[70,52],[130,56],[150,74],[44,104],[158,110],[60,140],[146,146],[84,46],[116,44],[40,130],[164,132]].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${1.6+(i%3)*.8}" fill="${pc}" opacity=".55"/>`).join('');
  let face='';
  if(o.face==='penguin')face=`<path d="M100 62c30-30 72 0 64 48-6 38-32 64-64 64s-58-26-64-64c-8-48 34-78 64-48z" fill="#fff"/>`;
  else if(o.face==='disc')face=`<circle cx="74" cy="92" r="24" fill="${o.fc}"/><circle cx="126" cy="92" r="24" fill="${o.fc}"/>`;
  else if(o.face)face=`<ellipse cx="100" cy="126" rx="60" ry="44" fill="${o.face}"/>`;
+ if(o.face==='emperor')face=`<path d="M100 30c-46 0-76 34-82 78 16-22 40-32 82-32s66 10 82 32c-6-44-36-78-82-78z" fill="#2e2a30"/><ellipse cx="72" cy="98" rx="25" ry="21" fill="#fff"/><ellipse cx="128" cy="98" rx="25" ry="21" fill="#fff"/>`;
+ if(o.belly)face+=`<ellipse cx="100" cy="148" rx="52" ry="30" fill="${o.belly}"/>`;
  if(o.cheek)face+=`<ellipse cx="50" cy="122" rx="24" ry="20" fill="${o.cheek}"/><ellipse cx="150" cy="122" rx="24" ry="20" fill="${o.cheek}"/>`;
  const ey=o.ear==='frog'?52:92,ea=o.ear==='frog'?64:74,eb=o.ear==='frog'?136:126,er=o.er||7;
  let sn='',my=110,mw=12;
  if(o.snout==='dog'){sn=`<ellipse cx="100" cy="120" rx="28" ry="19" fill="${o.sc||mix(c,'#ffffff',.5)}"/><ellipse cx="100" cy="108" rx="9" ry="6.5" fill="${INK}"/>`;my=122;mw=9}
+ if(o.snout==='wombat'){sn=`<ellipse cx="100" cy="116" rx="21" ry="14" fill="#3a2e28"/><ellipse cx="93" cy="111" rx="5" ry="3" fill="#7a6a5e"/>`;my=136;mw=8}
  if(o.snout==='pig'){sn=`<ellipse cx="100" cy="114" rx="21" ry="15" fill="${mix(c,'#d0607a',.3)}"/><ellipse cx="93" cy="114" rx="3.5" ry="5.5" fill="#a0485a"/><ellipse cx="107" cy="114" rx="3.5" ry="5.5" fill="#a0485a"/>`;my=134;mw=8}
  let mo=mouth(100,my,mw,e);
- if(o.snout==='beak')mo=e==='happy'?`<path d="M88 106l12-5 12 5-12 6z" fill="#f59e2a"/><path d="M91 111l9 10 9-10z" fill="#d9536f" stroke="#c86a1a" stroke-width="1.5"/>`:`<path d="M88 106l12-5 12 5-12 12z" fill="#f59e2a"/>`;
+ if(o.snout==='beak')mo=e==='happy'?`<path d="M88 106l12-5 12 5-12 6z" fill="${o.beak||'#f59e2a'}"/><path d="M91 111l9 10 9-10z" fill="#d9536f" stroke="#c86a1a" stroke-width="1.5"/>`:`<path d="M88 106l12-5 12 5-12 12z" fill="${o.beak||'#f59e2a'}"/>`;
  const wing=o.wing?`<ellipse class="wave" cx="26" cy="128" rx="14" ry="28" fill="${o.wing}" transform="rotate(24 26 128)"/><ellipse cx="174" cy="128" rx="14" ry="28" fill="${o.wing}" transform="rotate(-24 174 128)"/>`:'';
- const feet=o.feet?`<path d="M64 176h20M70 170v8M116 176h20M126 170v8" stroke="${o.feet}" stroke-width="6" stroke-linecap="round"/>`:`<ellipse cx="70" cy="176" rx="18" ry="8" fill="${sh}"/><ellipse cx="130" cy="176" rx="18" ry="8" fill="${sh}"/>`;
+ const hood=o.hoodie?`<path d="M28 112c-6-52 30-88 72-88s78 36 72 88" fill="none" stroke="${o.hoodie}" stroke-width="18" stroke-linecap="round"/>`:'';
+ const hoodie=o.hoodie?`<path d="M22 136c6 28 36 44 78 44s72-16 78-44c-14-12-42-18-78-18s-64 6-78 18z" fill="${o.hoodie}"/><path d="M20 128c-8 8-10 20-4 28 8-2 14-10 16-20zM180 128c8 8 10 20 4 28-8-2-14-10-16-20z" fill="${o.hoodie}"/><path d="M76 156h48v14q0 4-4 4H80q-4 0-4-4z" fill="${mix(o.hoodie,'#000000',.15)}"/><path d="M100 142c-4-3-7-5-7-8a3 3 0 0 1 7-1 3 3 0 0 1 7 1c0 3-3 5-7 8z" fill="#ff7c9c"/>`:'';
+ const feet=o.paws?`<ellipse cx="70" cy="176" rx="20" ry="9" fill="${o.paws}"/><ellipse cx="130" cy="176" rx="20" ry="9" fill="${o.paws}"/>${o.claws?`<path d="M58 179l-2 6M66 181l-1 6M74 181l1 6M82 179l2 6M118 179l-2 6M126 181l-1 6M134 181l1 6M142 179l2 6" stroke="#3a2e28" stroke-width="2.5" stroke-linecap="round"/>`:''}`:o.feet?`<path d="M64 176h20M70 170v8M116 176h20M126 170v8" stroke="${o.feet}" stroke-width="6" stroke-linecap="round"/>`:`<ellipse cx="70" cy="176" rx="18" ry="8" fill="${sh}"/><ellipse cx="130" cy="176" rx="18" ry="8" fill="${sh}"/>`;
  const tail=o.tail?`<path class="wag" d="M164 140c18-4 26-22 22-38 10 10 14 32-4 46z" fill="${o.tail}"/>`:'';
- return `<ellipse cx="100" cy="182" rx="70" ry="8" fill="#000" opacity=".12"/>${tail}${ear}
+ return `<ellipse cx="100" cy="182" rx="70" ry="8" fill="#000" opacity=".12"/>${hood}${tail}${ear}
  <path d="M100 30c52 0 84 42 84 92 0 40-34 60-84 60s-84-20-84-60c0-50 32-92 84-92z" fill="${c}"/>
  <path d="M30 140c6 26 34 38 70 38s64-12 70-38c-10 18-36 28-70 28s-60-10-70-28z" fill="${sh}"/>
  ${pat}${face}<path d="M58 54c10-10 26-14 40-14" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none" opacity=".7"/>
- ${front}${wing}${o.noBlush?'':blush(56,144,114)}${eyes(ea,eb,ey,er,e,o.ring,o.dark)}${sn}${mo}${feet}`}
+ ${hoodie}${front}${wing}${o.noBlush?'':blush(56,144,114)}${eyes(ea,eb,ey,er,e,o.ring,o.dark)}${sn}${mo}${feet}`}
 
 function dino(o,e){const c=o.c,dk=mix(c,'#000000',.12),b=o.b||'#f4f0c9',d=o.d;
  return `<ellipse cx="100" cy="183" rx="72" ry="7" fill="#000" opacity=".12"/>
@@ -92,6 +99,21 @@ function longBunny(o,e){const c=o.c,dk=mix(c,'#b07a00',.15);
  <path d="M100 116v36" stroke="${dk}" stroke-width="2" stroke-dasharray="4 4"/>
  ${eyes(82,118,70,4.5,e)}${blush(72,128,82)}${mouth(100,78,6,e)}`}
 
+function fishGuy(o,e){const c=o.c,dk=mix(c,'#000000',.18),lip=mix(c,'#000000',.08),pa=o.pants,sp=mix(pa,'#000000',.25);
+ const mo=e==='happy'?`<path d="M78 82q22 36 44 0z" fill="#8a1f2a" stroke="${lip}" stroke-width="5" stroke-linejoin="round"/><path d="M90 96q10 8 20 0" fill="#e8607a"/>`
+  :e==='calm'?`<ellipse cx="100" cy="94" rx="15" ry="18" fill="#8a1f2a" stroke="${lip}" stroke-width="7"/><path d="M90 104q10-6 20 0" fill="#c8405a"/>`
+  :`<ellipse cx="100" cy="100" rx="11" ry="13" fill="#8a1f2a" stroke="${lip}" stroke-width="6"/>`;
+ return `<g transform="translate(100 0) scale(1.32 1) translate(-100 0)"><ellipse cx="100" cy="184" rx="48" ry="6" fill="#000" opacity=".12"/>
+ <rect x="80" y="146" width="15" height="26" rx="6" fill="${pa}"/><rect x="105" y="146" width="15" height="26" rx="6" fill="${pa}"/>
+ <path d="M86 170l-12 12h22zM114 170l12 12h-22z" fill="#e4e4ea"/>
+ <path d="M60 56q0-36 40-36t40 36v74H60z" fill="${c}"/>
+ <path d="M66 46q6-18 22-22" stroke="${mix(c,'#ffffff',.45)}" stroke-width="6" stroke-linecap="round" fill="none"/>
+ <path d="M58 114h84v22q0 22-22 22H80q-22 0-22-22z" fill="${pa}"/>
+ <g fill="${sp}"><ellipse cx="72" cy="128" rx="9" ry="7"/><ellipse cx="102" cy="122" rx="8" ry="5"/><ellipse cx="130" cy="134" rx="9" ry="8"/><ellipse cx="88" cy="148" rx="7" ry="6"/><ellipse cx="120" cy="152" rx="6" ry="5"/></g>
+ <path class="wave" d="M62 78c-18 2-28 16-24 30 10-2 20-14 24-30z" fill="${mix(c,'#ffffff',.12)}"/>
+ <path d="M138 80c16 6 22 22 16 36-10-6-16-20-16-36z" fill="${mix(c,'#ffffff',.12)}"/>
+ <ellipse cx="82" cy="32" rx="17" ry="15" fill="#fff3a8" stroke="${dk}" stroke-width="1.5"/><ellipse cx="118" cy="32" rx="17" ry="15" fill="#fff3a8" stroke="${dk}" stroke-width="1.5"/>
+ ${eyes(84,116,32,5,e)}${blush(68,132,66)}${mo}</g>`}
 const FAMS={cat:'貓咪',dog:'狗狗',small:'兔兔・小動物',bear:'熊熊',dino:'恐龍',sea:'海洋',bird:'鳥兒・青蛙'};
 // [id, 預設名字, 品種名, 家族, 飼料組, 繪製, 參數]
 const SPECIES=[
@@ -124,7 +146,12 @@ const SPECIES=[
  ['chick','啾啾','小雞','bird','bird',blob,{c:'#ffe066',sh:'#f5c842',ear:'tuft',snout:'beak',wing:'#f5cf3c',feet:'#f59e2a'}],
  ['penguin','企企','企鵝','bird','bird',blob,{c:'#36404f',sh:'#2a323e',face:'penguin',snout:'beak',wing:'#2a323e',feet:'#f59e2a'}],
  ['owl','咕咕','貓頭鷹','bird','bird',blob,{c:'#b0805a',ear:'owl',ec:'#8a5f3e',face:'disc',fc:'#f3dcc0',snout:'beak',ring:'#fff8e0',er:8,wing:'#8a5f3e',feet:'#f59e2a',noBlush:1}],
- ['frog','呱呱','青蛙','bird','bird',blob,{c:'#8fd06a',sh:'#74b852',ear:'frog',ring:'#fff',face:'#e6f6c8'}]
+ ['frog','呱呱','青蛙','bird','bird',blob,{c:'#8fd06a',sh:'#74b852',ear:'frog',ring:'#fff',face:'#e6f6c8'}],
+ ['surprisefish','歐摸君','驚訝魚','sea','sea',fishGuy,{c:'#a9a9ad',pants:'#b8ec5c'}],
+ ['hoodiefox','竹子狐','帽T狐狸','dog','dog',blob,{c:'#f0783c',ear:'fox',ei:'#ffffff',face:'#fff6ea',snout:'dog',sc:'#fff6ea',hoodie:'#2c3a5e'}],
+ ['wombat','毛毛','澳洲袋熊','small','herb',blob,{c:'#8c7b6b',sh:'#6f5f50',ear:'small',ec:'#7a6a5a',ei:'#c99a6a',snout:'wombat',pat:'speckle',pc:'#4a3c30',paws:'#6a4a30',claws:1}],
+ ['mochi','桃麻糬','粉紅麻糬','small','herb',blob,{c:'#ffb8c8',sh:'#f59ab2',ear:'sprout',wing:'#ffc8d4',paws:'#fff0f3'}],
+ ['penguinchick','呆呆','企鵝寶寶','bird','sea',blob,{c:'#b4b4be',sh:'#9a9aa6',face:'emperor',belly:'#ffffff',snout:'beak',beak:'#2e2a30',wing:'#a2a2ae',paws:'#2e2a30',noBlush:0}]
 ];
 const SP={};SPECIES.forEach(([id,n,breed,fam,grp,fn,o])=>SP[id]={id,n,breed,fam,grp,o,bg:mix(o.c,'#ffffff',.72),draw:e=>fn(o,e)});
 function petSvg(sp,e){return (SP[sp]||SP.dango).draw(e||'happy')}
