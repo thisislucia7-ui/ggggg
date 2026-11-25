@@ -110,3 +110,15 @@ function fetchToy(){const p=P(),w=wOf(p);if(!p||!w||!toss)return;const {W}=stage
 const _setView=setView;setView=function(v){removeToss();_setView(v)};
 addEventListener('resize',()=>{if(view==='play'&&toss&&toss.state==='idle')readyToss()});
 applyView();
+
+// ---------- 選單：登入／登出 ----------
+const ACC_IN='<svg viewBox="0 0 40 40"><rect x="6" y="6" width="18" height="28" rx="4" fill="#9fd3c4"/><path d="M16 20h18M28 14l6 6-6 6" stroke="#2f7a68" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ACC_OUT='<svg viewBox="0 0 40 40"><rect x="16" y="6" width="18" height="28" rx="4" fill="#ffc8d4"/><path d="M24 20H6M12 14l-6 6 6 6" stroke="#c83a5a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ACC=['account','登入',ACC_IN,()=>accountAction()];MENU_EXTRA.push(ACC);
+function accState(){if(NET.mode==='firebase')return NET.state==='online'?'out':'in';if(NET.mode==='claude'&&NET.state==='online')return 'claude';return(window.FIREBASE_CONFIG&&window.FIREBASE_CONFIG.apiKey)?'in':'none'}
+const _rm=renderMenu;renderMenu=function(){const st=accState();ACC[1]=st==='out'?'登出':st==='claude'?'Claude 帳號':'登入／註冊';ACC[2]=st==='out'?ACC_OUT:ACC_IN;_rm()};
+async function accountAction(){const st=accState();
+ if(st==='out'){toast(`正在登出 ${NET.email}……`);save();try{await netFlush(S)}catch(e){}await fbLogout();try{localStorage.removeItem(KEY)}catch(e){}setTimeout(()=>location.reload(),500)}
+ else if(st==='in'){location.reload()}
+ else if(st==='claude'){openProfile();toast('這裡是用你的 Claude 帳號登入；要換帳號，請在 claude.ai 登出後再打開')}
+ else toast('這個版本沒有帳號功能，紀錄只存在這台裝置')}
