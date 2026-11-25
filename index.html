@@ -556,6 +556,39 @@ body[data-view]:not([data-view=home]) .viewtitle{display:flex}
 @keyframes pkL{40%{transform:translateX(40%) rotate(8deg)}}@keyframes pkR{40%{transform:translateX(-40%) rotate(-8deg)}}
 .pkside.ouch svg{animation:shk .12s linear 5}
 
+
+/* ===== 選寵物視窗：直式手機版 ===== */
+.pill:empty{display:none}
+.pick{grid-template-columns:120px minmax(0,1fr);align-items:start}
+.pick>svg{grid-row:span 3}
+.pick .pinfo p{margin:0 0 4px}
+.pick .pbtns button{flex:1 1 auto;min-height:38px;padding:4px 12px;font-size:14px}
+.pick .pname2 .inrow{align-items:center}.pick .pname2 input{flex:1 1 120px}
+@media(max-width:760px){
+ #ovAdopt{padding:0;align-items:stretch}
+ #adoptForm{width:100%;max-height:none;height:100vh;height:100dvh;border-radius:0;padding:calc(12px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:6px;overflow:hidden}
+ #adoptForm h2{font-size:21px;margin:0;line-height:1.2}
+ #adSub{font-size:12px;line-height:1.4}
+ #famTabs{flex-wrap:nowrap;overflow-x:auto;margin-top:2px!important;padding-bottom:4px;flex:none;scrollbar-width:none}
+ #famTabs::-webkit-scrollbar{display:none}
+ #famTabs button{flex:0 0 auto;min-height:38px;padding:4px 14px;font-size:14px}
+ #spGrid{flex:1 1 auto;min-height:120px;overflow-y:auto;grid-template-columns:repeat(3,minmax(0,1fr));margin:2px 0;align-content:start;gap:6px;padding:2px}
+ #spGrid button{font-size:12px;padding:4px 2px}
+ #spGrid svg{max-width:64px}
+ .pick{position:static;flex:none;grid-template-columns:72px minmax(0,1fr);gap:6px 10px;padding:10px;border-radius:18px}
+ .pick>svg{width:72px;grid-row:auto}
+ .pick .pbtns,.pick .pname2{grid-column:1/-1}
+ #adInfo{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .perscard{margin:0;padding:6px 10px;font-size:12px;line-height:1.45}
+ .perscard b{font-size:15px}
+ .pick .pbtns button{min-height:34px;font-size:13px}
+ .pick .pname2 label{display:none}
+ .pick .pname2 input{padding:9px 10px}
+ .pick .pname2 .save{padding:8px 16px;min-height:42px}
+ .pick .pname2 .ghost{min-height:42px;padding:8px 12px}
+}
+@media(max-width:760px) and (max-height:620px){#adSub{display:none}.perscard span:last-child{display:none}}
+
 @media(max-width:760px){.home,.diary{grid-template-columns:minmax(0,1fr)}.stage{min-height:330px}.gcards{grid-template-columns:minmax(0,1fr)}.gcard .art{height:96px}}
 @media(max-width:520px){.slots{grid-template-columns:repeat(3,minmax(0,1fr))}.pick{grid-template-columns:80px minmax(0,1fr)}.pick svg{width:80px}.foods button{font-size:11px}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important;transition:none!important}}
@@ -664,13 +697,10 @@ body[data-view]:not([data-view=home]) .viewtitle{display:flex}
  <div class="spgrid" id="spGrid"></div>
  <div class="pick">
   <svg id="adPrev" viewBox="0 0 200 190" aria-hidden="true"></svg>
-  <div><p id="adInfo"></p>
-   <div class="perscard" id="adPersBox"></div>
-   <div class="inrow" style="margin-bottom:8px"><button type="button" class="ghost" id="adReroll">換一個個性</button><button type="button" class="ghost" id="adRandom">隨機抽一隻</button></div>
-   <label class="small" for="adName">幫牠取個名字</label>
-   <input id="adName" maxlength="10">
-   <div class="row"><button type="button" class="ghost" id="adCancel">取消</button><button class="save" type="submit">帶牠回家</button></div>
-  </div>
+  <div class="pinfo"><p id="adInfo"></p><div class="perscard" id="adPersBox"></div></div>
+  <div class="inrow pbtns"><button type="button" class="ghost" id="adReroll">換一個個性</button><button type="button" class="ghost" id="adRandom">隨機抽一隻</button></div>
+  <div class="pname2"><label class="small" for="adName">幫牠取個名字</label>
+   <div class="inrow"><input id="adName" maxlength="10"><button type="button" class="ghost" id="adCancel">取消</button><button class="save" type="submit">帶牠回家</button></div></div>
  </div>
 </form></div>
 
