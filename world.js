@@ -164,7 +164,9 @@ function renderWorldUI(){if(!$('pCoin'))return;$('pCoin').innerHTML=`${COIN(22)}
 
 // ---------- 帳號與好友 ----------
 const nickOf=id=>{const h=netHome(id);return (h&&h.nick)||'神秘玩家'};
-function acctLine(){return NET.state==='online'?(NET.ro?'已登入，但你目前只有瀏覽權限：紀錄只存在這台裝置，也不能留言。':`已用 Claude 帳號登入${S.nick?'：'+S.nick:''}，遊玩紀錄會自動存到雲端。`):NET.state==='loading'?'正在連線你的帳號……':'離線模式：紀錄只存在這台裝置。在 claude.ai 上開啟並登入，就能雲端存檔和交朋友。'}
+function acctLine(){const fb=NET.mode==='firebase';if(NET.state==='online')return NET.ro?(fb?'已登入，但雲端暫時無法寫入，紀錄先存在這台裝置。':'已登入，但你目前只有瀏覽權限：紀錄只存在這台裝置，也不能留言。'):fb?`已登入：${NET.email}${S.nick?'（'+S.nick+'）':''}，遊玩紀錄會自動存到雲端。`:`已用 Claude 帳號登入${S.nick?'：'+S.nick:''}，遊玩紀錄會自動存到雲端。`;
+ if(NET.state==='loading')return '正在連線你的帳號……';if(NET.state==='login')return '登入或註冊帳號，遊玩紀錄就能存到雲端，還能交朋友。';
+ return fb?'目前沒有登入：紀錄只存在這台裝置。到「個人」頁可以登入。':(window.FIREBASE_CONFIG&&window.FIREBASE_CONFIG.apiKey)?'無法連線到雲端：紀錄先存在這台裝置。':'離線模式：紀錄只存在這台裝置。在 claude.ai 上開啟並登入，就能雲端存檔和交朋友。'}
 function renderFriends(){const B=$('frBody');
  if(NET.state!=='online'){B.innerHTML=`<h2>好友與留言板</h2><p class="netnote">${esc(acctLine())}</p><div class="row" style="justify-content:flex-end"><button class="save" id="frClose">關閉</button></div>`;$('frClose').onclick=closeFriends;return}
  const me=NET.uid,code=netCode(me),mine=S.friends;
@@ -172,7 +174,7 @@ function renderFriends(){const B=$('frBody');
  const inbox=netInbox(me);
  B.innerHTML=`<div class="row" style="margin:0"><h2 style="margin:0">好友與留言板</h2><button class="ghost" id="frClose">關閉</button></div>
  ${NET.ro?`<p class="netnote">你目前只有瀏覽權限，可以看但不能存檔、加好友或留言。請頁面主人在分享設定裡把你加為「編輯者」。</p>`:''}
- <h3>我的帳號</h3><p class="small">用 Claude 帳號登入，不需要另外設定密碼；遊玩紀錄會自動存到雲端，換裝置也能繼續玩。</p>
+ <h3>我的帳號</h3><p class="small">${NET.mode==='firebase'?`登入帳號：${esc(NET.email)}`:'用 Claude 帳號登入，不需要另外設定密碼'}；遊玩紀錄會自動存到雲端，換裝置也能繼續玩。</p>
  <div class="inrow"><input id="frNick" maxlength="12" placeholder="玩家暱稱" value="${esc(S.nick||'')}"><button class="save" id="frNickSave">儲存暱稱</button></div>
  <p style="margin:10px 0 4px">我的好友碼</p><div class="inrow" style="align-items:center"><span class="codebox">${code}</span><button class="ghost" id="frCopy">複製</button></div>
  <h3>加好友</h3><div class="inrow"><input id="frCode" maxlength="6" placeholder="輸入好友的 6 碼好友碼" style="text-transform:uppercase"><button class="save" id="frAdd">加好友</button></div>
@@ -188,7 +190,7 @@ function msgHtml(m,mine){const grp=P()?SP[P().sp].grp:'cat',claimed=S.giftsIn.in
 $('frBody').addEventListener('click',async e=>{const t=e.target.closest('button');if(!t)return;
  if(t.id==='frNickSave'){const n=$('frNick').value.trim().slice(0,12);if(!n)return;S.nick=n;save();toast('暱稱已儲存');renderFriends()}
  if(t.id==='frCopy'){try{await navigator.clipboard.writeText(netCode(NET.uid));toast('好友碼已複製')}catch(err){toast('請手動選取好友碼')}}
- if(t.id==='frAdd'){const c=$('frCode').value;const id=netFindCode(c);if(!id){toast('找不到這個好友碼，請確認對方已經開過遊戲');return}if(id===NET.uid){toast('這是你自己的好友碼喔');return}
+ if(t.id==='frAdd'){const c=$('frCode').value;const id=await netFindCode(c);if(!id){toast('找不到這個好友碼，請確認對方已經開過遊戲');return}if(id===NET.uid){toast('這是你自己的好友碼喔');return}
   if(!S.friends.includes(id))S.friends.push(id);save();netFlush(S);sfx('chime');toast(`已加 ${nickOf(id)} 為好友！`);renderFriends()}
  if(t.dataset.accept){S.friends.push(t.dataset.accept);save();netFlush(S);sfx('chime');remember(P(),`和 ${nickOf(t.dataset.accept)} 成為好朋友`);renderFriends()}
  if(t.dataset.ignore){S.ignored.push(t.dataset.ignore);save();renderFriends()}
@@ -207,7 +209,7 @@ function processInbox(){if(NET.state!=='online')return;let n=0;
 
 // ---------- 拜訪好友 ----------
 let visitId=null,visitT=null;
-function openVisit(fid){const h=netHome(fid);if(!h)return;visitId=fid;const d=cleanDecor(h.decor);
+function openVisit(fid){const h=netHome(fid);if(!h)return;visitId=fid;netWatchBoard(fid);const d=cleanDecor(h.decor);
  $('vTitle').textContent=`${h.nick||'好友'}的家`;$('vStage').dataset.tod=tod();$('vScene').innerHTML=sceneSvg(d);renderFurn($('vFurn'),d.items,false);
  const pets=(Array.isArray(h.pets)?h.pets:[]).filter(p=>p&&SP[p.sp]).slice(0,6),w=pets.length<=1?'46%':pets.length===2?'34%':pets.length===3?'28%':'23%';
  $('vPets').style.setProperty('--pw',w);
@@ -233,13 +235,25 @@ $('vExit').onclick=()=>{clearInterval(visitT);visitId=null;$('ovVisit').classLis
 $('nickForm').onsubmit=e=>{e.preventDefault();const n=$('nickIn').value.trim().slice(0,12);if(!n)return;S.nick=n;save();$('ovNick').classList.remove('on');toast(`歡迎你，${n}！`);$('tAcct').textContent=acctLine()};
 
 // ---------- 啟動 ----------
-function updateTitle(){const p=P();$('tWait').innerHTML=p?`<div class="wait">${thumb(p.sp,expr(p),'')}<span>${esc(p.name)}${S.pets.length>1?`和其他 ${S.pets.length-1} 隻`:''}正在房間裡等你！</span></div>`:'';$('tGo').textContent=p?'進入房間':'開始選寵物';$('tAcct').textContent=acctLine()}
+function updateTitle(){const p=P();$('tWait').innerHTML=p?`<div class="wait">${thumb(p.sp,expr(p),'')}<span>${esc(p.name)}${S.pets.length>1?`和其他 ${S.pets.length-1} 隻`:''}正在房間裡等你！</span></div>`:'';$('tGo').textContent=p?'進入房間':'開始選寵物';$('tAcct').textContent=acctLine();const lg=NET.state==='login';$('loginForm').hidden=!lg;$('tGo').hidden=lg}
 const _enter=enterRoom;enterRoom=function(){_enter();renderMess();if(NET.state==='online'&&!NET.ro&&!S.nick)setTimeout(()=>{$('ovNick').classList.add('on');$('nickIn').focus()},2600);processInbox()};
 S=normalize(S);decay();renderDiaryForm();renderDiary();renderRoom(true);renderMess();if(S.pets.length)render();
 showTitle();updateTitle();
 setInterval(()=>{if(!playing&&P()){decay();render()}},60000);
 $('stage').dataset.tod=tod();
-NET.onChange=k=>{if(k==='out')processInbox();if($('ovFriends').classList.contains('on'))renderFriends();if(visitId&&k==='out')renderBoard();renderWorldUI();$('tAcct').textContent=acctLine()};
+NET.onChange=k=>{if(k==='login')updateTitle();if(k==='out')processInbox();if($('ovFriends').classList.contains('on'))renderFriends();if(visitId&&k==='out')renderBoard();renderWorldUI();$('tAcct').textContent=acctLine()};
 netInit().then(cloud=>{
- if(cloud){try{const c=JSON.parse(cloud.state);if(c&&Array.isArray(c.pets)&&(c.ts||0)>(S.ts||0)&&($('ovTitle').classList.contains('on')||!S.pets.length)){S=normalize(c);try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}renderRoom(true);renderMess();renderDiary();if(S.pets.length)render();toast('已從雲端載入你的遊玩紀錄')}}catch(e){}}
+ const fb=NET.mode==='firebase'&&NET.state==='online',other=fb&&S.owner&&S.owner!==NET.uid;
+ let c=null;if(cloud){try{c=JSON.parse(cloud.state)}catch(e){}}
+ const apply=n=>{S=normalize(n);try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}renderRoom(true);renderMess();renderDiary();if(S.pets.length)render();else $('petsL').innerHTML=''};
+ if(c&&Array.isArray(c.pets)&&(other||((c.ts||0)>(S.ts||0)&&($('ovTitle').classList.contains('on')||!S.pets.length)))){apply(c);toast('已從雲端載入你的遊玩紀錄')}
+ else if(other)apply({pets:[],cur:0,slots:1,stars:0,inv:[0,0,0,0],food:0,toy:'ball',plays:{},diary:[],checkDay:'',last:Date.now()});
+ if(fb)S.owner=NET.uid;
  updateTitle();if(NET.state==='online'&&!NET.ro)netFlush(S);processInbox()});
+// ---------- 公開網站：電子郵件登入 ----------
+async function doLogin(kind){const em=$('lgEmail').value.trim(),pw=$('lgPass').value;$('lgMsg').textContent=kind==='up'?'註冊中……':'登入中……';
+ const err=await fbLogin(kind,em,pw);$('lgMsg').textContent=err;if(!err){sfx('chime');toast(kind==='up'?'註冊成功，歡迎你！':'登入成功！')}}
+$('loginForm').onsubmit=e=>{e.preventDefault();doLogin('in')};
+$('lgUp').onclick=()=>doLogin('up');
+$('lgForgot').onclick=async()=>{const em=$('lgEmail').value.trim();if(!em){$('lgMsg').textContent='請先在上面填好電子郵件';return}$('lgMsg').textContent=await fbReset(em)};
+$('lgSkip').onclick=()=>{fbSkip();updateTitle()};

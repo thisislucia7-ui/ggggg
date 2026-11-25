@@ -1,0 +1,58 @@
+name: 部署到 Firebase
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 讀取服務帳戶金鑰
+        id: sa
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SA" ]; then
+            echo "::error::還沒設定 GitHub Secret「FIREBASE_SERVICE_ACCOUNT」，請照 README 的步驟設定。"
+            exit 1
+          fi
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa.json" >> "$GITHUB_ENV"
+          echo "project=$(jq -r .project_id "$RUNNER_TEMP/sa.json")" >> "$GITHUB_OUTPUT"
+
+      - name: 自動填入網站的 Firebase 設定（fbconfig.js 還是 null 時）
+        env:
+          PID: ${{ steps.sa.outputs.project }}
+        run: |
+          if grep -q "FIREBASE_CONFIG = null" fbconfig.js; then
+            FB="npx -y firebase-tools@13"
+            APPID=$($FB apps:list WEB --project "$PID" --json | jq -r '.result[0].appId // empty')
+            if [ -z "$APPID" ]; then
+              APPID=$($FB apps:create WEB "pet-web" --project "$PID" --json | jq -r '.result.appId // empty')
+            fi
+            CFG=$($FB apps:sdkconfig WEB "$APPID" --project "$PID" --json | jq -c '.result.sdkConfig // empty')
+            if [ -n "$CFG" ]; then
+              printf 'window.FIREBASE_CONFIG = %s;\n' "$CFG" > fbconfig.js
+              echo "已自動填入 Firebase 設定"
+            else
+              echo "::warning::無法自動取得 Firebase 設定，網站會以單機模式運作。請手動把設定貼進 fbconfig.js。"
+            fi
+          fi
+
+      - name: 部署網站與資料庫規則
+        env:
+          PID: ${{ steps.sa.outputs.project }}
+        run: npx -y firebase-tools@13 deploy --only hosting,firestore:rules --project "$PID" --non-interactive
+
+      - name: 網址
+        env:
+          PID: ${{ steps.sa.outputs.project }}
+        run: echo "### 網站已上線：https://$PID.web.app" >> "$GITHUB_STEP_SUMMARY"

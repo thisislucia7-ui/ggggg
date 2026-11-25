@@ -500,6 +500,9 @@ button:not(:disabled):active{transform:translateY(2px) scale(.98)}
 .shgrid button svg{width:36px;height:36px}.shgrid button b{font-weight:500;font-size:12px;color:var(--mute)}
 .shgrid button.hot{border-color:var(--berry);background:light-dark(#fff0f4,#3a2433)}
 .ov{z-index:14}#ovBye,#ovBite,#ovChat,#ovNick{z-index:16}
+.loginbox{width:min(360px,100%);display:flex;flex-direction:column;gap:8px;background:var(--card);border-radius:22px;padding:16px;box-shadow:var(--shadow)}
+.loginbox input{font:16px inherit;font-family:inherit;padding:12px;border-radius:14px;border:2px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+.loginbox .inrow button{flex:1}
 .bnav{display:none}
 @media(max-width:760px){
  body{padding-bottom:calc(74px + env(safe-area-inset-bottom))}
@@ -660,6 +663,13 @@ button:not(:disabled):active{transform:translateY(2px) scale(.98)}
  <h1>轉身成為小寵物</h1>
  <p class="sub">選一隻小動物，陪你吃飯、玩耍、記下每天的心情。</p>
  <div id="tWait"></div>
+ <form class="loginbox" id="loginForm" hidden>
+  <input id="lgEmail" type="email" placeholder="電子郵件" autocomplete="email" aria-label="電子郵件">
+  <input id="lgPass" type="password" placeholder="密碼（至少 6 個字）" autocomplete="current-password" aria-label="密碼">
+  <div class="inrow"><button class="save" type="submit">登入</button><button type="button" class="ghost" id="lgUp">註冊新帳號</button></div>
+  <div class="inrow" style="justify-content:space-between"><button type="button" class="link" id="lgForgot">忘記密碼</button><button type="button" class="link" id="lgSkip">先不登入，單機玩</button></div>
+  <p class="small" id="lgMsg" role="status"></p>
+ </form>
  <button class="go" id="tGo">開始</button>
  <div class="soundbar"><button type="button" id="tMusic" aria-pressed="true">音樂</button><button type="button" id="tSfx" aria-pressed="true">音效</button></div>
  <p class="small">建議開啟聲音，一起聽可愛的音樂盒旋律</p>
@@ -709,7 +719,7 @@ button:not(:disabled):active{transform:translateY(2px) scale(.98)}
 
 <div class="ov" id="ovNick"><form class="dlg" id="nickForm">
  <h2>取一個玩家暱稱</h2>
- <p class="small">好友會看到這個名字。你用 Claude 帳號登入，遊玩紀錄會自動存在雲端，不需要另外設定密碼。</p>
+ <p class="small">好友會看到這個名字。登入後，遊玩紀錄會自動存在雲端。</p>
  <input id="nickIn" maxlength="12" placeholder="例如：小雨" style="text-align:center;margin:12px 0">
  <div class="row" style="justify-content:center"><button class="save" type="submit">好了</button></div>
 </form></div>
@@ -750,6 +760,7 @@ button:not(:disabled):active{transform:translateY(2px) scale(.98)}
 <script src="audio.js"></script>
 <script src="pets.js"></script>
 <script src="room.js"></script>
+<script src="fbconfig.js"></script>
 <script src="net.js"></script>
 <script src="games.js"></script>
 <script src="app.js"></script>

@@ -1,0 +1,31 @@
+rules_version = '2';
+// 轉身成為小寵物：資料存取規則
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+
+    // 自己的存檔：只有本人能讀寫
+    match /data/users/{uid}/{doc} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // 公開的家（暱稱、好友碼、寵物、佈置、好友名單）：登入者可讀，只能寫自己的
+    match /homes/{uid} {
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == uid
+        && request.resource.data.nick is string && request.resource.data.nick.size() <= 12
+        && request.resource.data.code is string && request.resource.data.code.size() == 6;
+    }
+
+    // 留言板：登入者可讀；只能以自己的名義留言；主人可以刪除自己板上的留言
+    match /board/{host}/msgs/{msg} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.from == request.auth.uid
+        && request.resource.data.to == host
+        && request.resource.data.type in ['msg', 'gift', 'poop']
+        && (!('text' in request.resource.data) || (request.resource.data.text is string && request.resource.data.text.size() <= 200));
+      allow delete: if signedIn() && request.auth.uid == host;
+    }
+  }
+}

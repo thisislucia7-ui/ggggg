@@ -94,9 +94,10 @@ function renderProfile(){const grp=P()?SP[P().sp].grp:'cat';
  <h3>我的寵物</h3><div class="pflist">${S.pets.map((p,i)=>{const Q=PERS[p.pers]||PERS.clingy,lv=Math.floor(p.aff/100)+1;return `<div class="pfpet ${i===S.cur?'on':''}">${thumb(p.sp,expr(p),'')}<div><b>${esc(p.name)}</b> <span class="small">${esc(SP[p.sp].breed)}・Lv.${lv}・相處 ${Math.floor((Date.now()-(p.born||Date.now()))/864e5)+1} 天</span>
   <p style="margin:4px 0 0"><span class="ptrait">${Q.n}</span> <span class="small">${Q.d}</span></p><p class="small" style="margin:2px 0 0">教養程度 ${p.trained||0}/4</p>
   <div class="inrow" style="margin-top:6px">${i===S.cur?'<span class="small" style="align-self:center">正在陪你</span>':`<button class="ghost" data-pc="${i}">換牠陪我</button>`}<button class="ghost" data-bye="release" data-pi="${i}">放養</button><button class="ghost" data-bye="sell" data-pi="${i}">賣出（${sellPrice(p)} 金幣）</button></div></div></div>`}).join('')}</div>
- <h3>設定</h3><div class="inrow"><button class="ghost" id="pfMusic">${Snd.pref.music?'音樂：開':'音樂：關'}</button><button class="ghost" id="pfSfx">${Snd.pref.sfx?'音效：開':'音效：關'}</button></div>`;
+ <h3>設定</h3><div class="inrow">${NET.mode==='firebase'?(NET.state==='online'?'<button class="ghost" id="pfOut">登出</button>':'<button class="save" id="pfIn">登入／註冊</button>'):''}<button class="ghost" id="pfMusic">${Snd.pref.music?'音樂：開':'音樂：關'}</button><button class="ghost" id="pfSfx">${Snd.pref.sfx?'音效：開':'音效：關'}</button></div>`;
  $('pfClose').onclick=()=>$('ovProfile').classList.remove('on');
  $('pfNick').onclick=()=>{$('ovProfile').classList.remove('on');if(NET.state==='online'){openFriends()}else{$('nickIn').value=S.nick||'';$('ovNick').classList.add('on')}};
+ if($('pfOut'))$('pfOut').onclick=async()=>{await fbLogout();try{localStorage.removeItem(KEY)}catch(e){}location.reload()};if($('pfIn'))$('pfIn').onclick=()=>location.reload();
  $('pfMusic').onclick=()=>{$('sMusic').click();renderProfile()};$('pfSfx').onclick=()=>{$('sSfx').click();renderProfile()}}
 const sellPrice=p=>30+Math.floor(p.aff/100)*25;
 $('pfBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
