@@ -57,12 +57,11 @@ jobs:
           echo "### 測試版網址：$URL" >> "$GITHUB_STEP_SUMMARY"
 
       - name: 在 PR 留下測試網址
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           URL: ${{ steps.deploy.outputs.url }}
           PR: ${{ github.event.number }}
         run: |
-          BODY="測試版已更新：$URL
-
-          這是這個 PR 專用的測試網站，和正式網站共用同一個登入系統與資料庫，建議用測試帳號登入。合併後正式網站才會更新；測試網址 14 天後自動失效，每次推送新修改都會重新部署。"
-          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --edit-last --body "$BODY" 2>/dev/null || gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "$BODY"
+          printf '測試版已更新：%s\n\n這是這個 PR 專用的測試網站，和正式網站共用同一個登入系統與資料庫，建議用測試帳號登入。合併後正式網站才會更新；測試網址 14 天後自動失效，每次推送新修改都會重新部署。\n' "$URL" > "$RUNNER_TEMP/body.md"
+          gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -F body=@"$RUNNER_TEMP/body.md" --jq .html_url
