@@ -3,7 +3,7 @@ const VIEWS={
  home:{n:'客廳',d:'動物的家和心情留言板',ic:'<svg viewBox="0 0 40 40"><path d="M6 19 20 7l14 12v15H6z" fill="#ff9fb4"/><rect x="16" y="23" width="8" height="11" rx="2" fill="#fff"/><path d="M3 20 20 5l17 15" stroke="#e8507a" stroke-width="3" fill="none" stroke-linecap="round"/></svg>'},
  dining:{n:'餐廳',d:'選飼料餵牠吃飯',room:'dining',ic:'<svg viewBox="0 0 40 40"><path d="M4 18h32a16 14 0 0 1-32 0z" fill="#f0a04b"/><g fill="#c97a2a"><circle cx="14" cy="16" r="4"/><circle cx="21" cy="14" r="4"/><circle cx="27" cy="17" r="3.5"/></g></svg>'},
  bath:{n:'浴室',d:'洗澡、擦乾、梳毛',room:'bath',ic:'<svg viewBox="0 0 40 40"><path d="M5 20h30v6a8 8 0 0 1-8 8H13a8 8 0 0 1-8-8z" fill="#7ac8f0"/><circle cx="14" cy="14" r="5" fill="#eaf6ff" stroke="#7ac8f0" stroke-width="2"/><circle cx="24" cy="10" r="4" fill="#eaf6ff" stroke="#7ac8f0" stroke-width="2"/></svg>'},
- play:{n:'遊戲室',d:'玩具、互動、小遊戲',ic:'<svg viewBox="0 0 40 40"><rect x="4" y="12" width="32" height="18" rx="9" fill="#b58cff"/><path d="M12 17v8M8 21h8" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="27" cy="19" r="2.5" fill="#fff"/><circle cx="31" cy="24" r="2.5" fill="#fff"/></svg>'},
+ play:{n:'遊戲室',d:'玩具、互動、小遊戲',room:'play',ic:'<svg viewBox="0 0 40 40"><rect x="4" y="12" width="32" height="18" rx="9" fill="#b58cff"/><path d="M12 17v8M8 21h8" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="27" cy="19" r="2.5" fill="#fff"/><circle cx="31" cy="24" r="2.5" fill="#fff"/></svg>'},
  tasks:{n:'任務與禮物',d:'每日任務、每日禮物、小秘密',ic:'<svg viewBox="0 0 40 40"><rect x="8" y="16" width="24" height="18" rx="3" fill="#ff7c9c"/><rect x="6" y="11" width="28" height="7" rx="2" fill="#e8507a"/><rect x="18" y="11" width="4" height="23" fill="#ffc94a"/><path d="M20 11c-6-8-14-4-9 0zM20 11c6-8 14-4 9 0z" fill="#ffc94a"/></svg>'},
  memories:{n:'回憶相簿',d:'一起走過的重要時刻',ic:'<svg viewBox="0 0 40 40"><rect x="6" y="7" width="24" height="26" rx="2" fill="#fff" stroke="#c9a070" stroke-width="2.5" transform="rotate(-8 18 20)"/><rect x="11" y="9" width="24" height="26" rx="2" fill="#fff" stroke="#c9a070" stroke-width="2.5"/><path d="M23 26c-4-3-6-5-6-7a2.5 2.5 0 0 1 6-1 2.5 2.5 0 0 1 6 1c0 2-2 4-6 7z" fill="#ff7c9c"/></svg>'}};
 const MENU_EXTRA=[
@@ -13,7 +13,10 @@ const MENU_EXTRA=[
  ['me','個人資訊','<svg viewBox="0 0 40 40"><circle cx="20" cy="14" r="7" fill="#ffc94a"/><path d="M6 34c1-8 7-12 14-12s13 4 14 12z" fill="#ffc94a"/></svg>',()=>openProfile()]];
 let view='home';
 const CARE_VIEW={bath:'bath',towel:'bath',brush:'bath',sleep:'play',chat:'play'};
-function applyView(){document.body.dataset.view=view;
+const ACT={dining:'餵食',bath:'洗澡與照顧',play:'玩耍與小遊戲'};
+function drawer(open){document.querySelector('.panel').classList.toggle('open',!!open)}
+function applyView(){document.body.dataset.view=view;document.body.classList.toggle('act',!!ACT[view]);
+ if(ACT[view]){$('drawLab').textContent=ACT[view];drawer(true)}else drawer(false);
  document.querySelectorAll('[data-v]').forEach(el=>{el.hidden=!el.dataset.v.split(' ').includes(view)});
  document.querySelectorAll('#care [data-c]').forEach(b=>{b.hidden=CARE_VIEW[b.dataset.c]!==view});
  $('careLab').textContent=view==='bath'?'照顧':'互動';
@@ -46,6 +49,12 @@ $('gamesInline').onclick=e=>{const b=e.target.closest('[data-gi]');if(!b||b.disa
 const _close=closeGames;closeGames=function(){_close();if(view==='play')renderGamesInline()};
 $('gExit').onclick=closeGames;
 const _rwu=renderWorldUI;renderWorldUI=function(){_rwu();const n=NET.state==='online'?netInbox(NET.uid).filter(x=>x.ts>(S.lastRead||0)).length:0;$('fabBadge').textContent=n||'';$('fabBadge').hidden=!n};
+document.querySelector('.panel').insertAdjacentHTML('afterbegin','<button type="button" class="drawhandle" id="drawHandle" aria-label="拉出或收起選單"><span class="grab"></span><span class="lab"><b id="drawLab">選單</b><svg viewBox="0 0 20 20"><path d="M5 12l5-5 5 5" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></span></button>');
+$('drawHandle').onclick=()=>{sfx('click');drawer(!document.querySelector('.panel').classList.contains('open'))};
+// 按下動作後收起抽屜，讓你看清楚動畫
+document.querySelector('.panel').addEventListener('click',e=>{if(!document.body.classList.contains('act'))return;if(e.target.closest('#btnFeed,#btnPlay,#btnFeedAll,#btnBathAll,#care [data-c]'))setTimeout(()=>drawer(false),60)});
+// 在舞台上往上滑也能拉出抽屜
+{let y0=null;document.querySelector('.panel').addEventListener('touchstart',e=>{y0=e.touches[0].clientY},{passive:true});document.querySelector('.panel').addEventListener('touchend',e=>{if(y0==null||!document.body.classList.contains('act'))return;const dy=e.changedTouches[0].clientY-y0;if(e.target.closest('.drawhandle')){if(dy<-30)drawer(true);if(dy>30)drawer(false)}y0=null},{passive:true})}
 document.head.insertAdjacentHTML('beforeend','<style>.panel.mini>div:not(.pname):not(.meter){display:none}.panel>*{order:2}.panel>.pname{order:0}body:not([data-view=home]) .panel>.meter{order:5}</style>');
 
 // ---------- 好友家：摸摸、餵點心、寵物 PK ----------
