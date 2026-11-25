@@ -155,3 +155,16 @@ const _ent=enterRoom;enterRoom=function(){_ent();setTimeout(checkFriends,3500)};
 const _rwu3=renderWorldUI;renderWorldUI=function(){_rwu3();if(typeof pendingReqs!=='function')return;const r=pendingReqs().length,m=NET.state==='online'?netInbox(NET.uid).filter(x=>x.ts>(S.lastRead||0)).length:0,n=r+m;
  $('fabBadge').textContent=n||'';$('fabBadge').hidden=!n;$('btnFriends').innerHTML=`好友${r+m?`<b>${r+m}</b>`:''}`};
 const _rm2=renderMenu;renderMenu=function(){_rm2();const r=pendingReqs().length,b=document.querySelector('#menuGrid [data-extra=friends]');if(b&&r)b.insertAdjacentHTML('beforeend',`<i>${r}</i>`)};
+
+// ---------- 寵物視窗固定在上方：所有可捲動的內容都放在房間下方／旁邊 ----------
+{const rc=document.querySelector('.rightcol');
+ for(const [sec,v] of [['tasksSec','tasks'],['memSec','memories']]){const w=$(sec).querySelector('.wrap');w.dataset.v=v;w.classList.add('moved',sec==='tasksSec'?'qband-in':'mband-in');rc.append(w);$(sec).dataset.v='none';$(sec).hidden=true}}
+document.head.insertAdjacentHTML('beforeend',`<style>
+.rightcol .wrap.moved{max-width:none;margin:0;padding:0}
+.rightcol .qgrid{grid-template-columns:minmax(0,1fr)!important}
+.rightcol .qband-in .card,.rightcol .mband-in{background:transparent}
+@media(max-width:760px){body:not(.act) .stage{aspect-ratio:4/3!important;position:sticky!important;top:0!important;z-index:6;box-shadow:0 10px 18px -12px #7a3a1a}}
+@media(min-width:761px){body:not(.act) .stage{position:sticky!important;top:12px!important}}
+</style>`);
+const _setView2=setView;setView=function(v){_setView2(v);setTimeout(()=>scrollTo({top:0,behavior:'smooth'}),140)};
+applyView();
