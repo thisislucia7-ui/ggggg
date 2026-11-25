@@ -168,3 +168,12 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 </style>`);
 const _setView2=setView;setView=function(v){_setView2(v);setTimeout(()=>scrollTo({top:0,behavior:'smooth'}),140)};
 applyView();
+
+// ---------- 不要長按選取 ----------
+document.head.insertAdjacentHTML('beforeend',`<style>
+html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+img,svg{-webkit-user-drag:none;user-drag:none}
+</style>`);
+document.addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea,[contenteditable]'))e.preventDefault()});
+document.addEventListener('selectstart',e=>{if(!e.target.closest||!e.target.closest('input,textarea,[contenteditable]'))e.preventDefault()});
