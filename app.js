@@ -49,7 +49,7 @@ const KEY='petDiary.v2';
 
 function load(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}
  if(!(s&&Array.isArray(s.pets))){
-  s={pets:[],cur:0,slots:1,stars:0,inv:[0,0,0,0],food:0,toy:'ball',plays:{},diary:[],checkDay:'',last:Date.now()};
+  s={pets:[],cur:0,slots:2,gift26:1,stars:0,inv:[0,0,0,0],food:0,toy:'ball',plays:{},diary:[],checkDay:'',last:Date.now()};
   try{const o=JSON.parse(localStorage.getItem('petDiary.v1'));
    if(o&&o.name){const sp={cat:'dango',dino:'lvlv',whale:'lanlan',bunny:'huanghuang'}[o.sp||'cat']||'dango';
     s.pets=[{id:'p1',sp,name:o.name,aff:o.aff||0,full:o.full??70,joy:o.joy??70}];s.diary=(o.diary||[]).map(d=>({...d,mood:d.mood||'calm'}));s.checkDay=o.checkDay||'';s.last=o.last||Date.now()}}catch(e){}}

@@ -9,6 +9,11 @@
 //  Firebase 模式：board/<主人id>/msgs/<自動id> 寫給某個家的留言
 const NET={mode:'offline',state:'loading',db:null,user:null,auth:null,uid:null,email:'',ro:false,homes:{},out:{},boards:{},watched:{},listeners:[],onChange:null,saveBusy:false,saveAgain:false,homeSent:'',saveTimer:null,loginWait:null};
 const FB_VER='10.12.2';
+// 帳號名稱登入：不需要真的電子郵件，內部轉成不會收信的固定格式（不蒐集個資）
+const ACCT_DOMAIN='player.gameforan-37213.web.app';
+const ACCT_RE=/^[a-z0-9_]{4,20}$/;
+const acctEmail=n=>{n=String(n||'').trim();return n.includes('@')?n:n.toLowerCase()+'@'+ACCT_DOMAIN};
+const acctName=e=>{e=String(e||'');return e.endsWith('@'+ACCT_DOMAIN)?e.slice(0,-ACCT_DOMAIN.length-1):e};
 const fire=k=>NET.onChange&&NET.onChange(k);
 function netCode(uid){let h=2166136261;for(const c of uid)h=Math.imul(h^c.charCodeAt(0),16777619)>>>0;return String(h%1000000).padStart(6,'0')}
 function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.append(s)})}
@@ -43,7 +48,7 @@ async function fbInit(){NET.mode='firebase';
  const u2=await new Promise(r=>{NET.loginWait=r});
  if(!u2){NET.state='offline';fire('login');return null}
  return fbStart(u2)}
-async function fbStart(u){NET.uid=u.uid;NET.email=u.email||'';
+async function fbStart(u){NET.uid=u.uid;NET.email=acctName(u.email||'');
  let cloud=null;try{const s=await NET.db.doc(`data/users/${u.uid}/save`).get();if(s.exists)cloud=s.data()}catch(e){}
  NET.state='online';
  NET.listeners.push(NET.db.collection(`board/${u.uid}/msgs`).orderBy('ts','desc').limit(100).onSnapshot(q=>{NET.boards[u.uid]=q.docs.map(d=>({...d.data(),id:d.id}));fire('out')},()=>{}));
@@ -55,7 +60,11 @@ function netWatchFriends(ids){if(NET.mode!=='firebase'||NET.state!=='online')ret
  for(const id of ids||[])if(!NET.watched[id]){NET.watched[id]=1;NET.listeners.push(NET.db.doc(`homes/${id}`).onSnapshot(d=>{if(d.exists){NET.homes[id]=d.data();fire('homes')}},()=>{}))}}
 function netWatchBoard(uid){if(NET.mode!=='firebase'||NET.state!=='online'||NET.boards['w:'+uid])return;NET.boards['w:'+uid]=1;
  NET.listeners.push(NET.db.collection(`board/${uid}/msgs`).orderBy('ts','desc').limit(50).onSnapshot(q=>{NET.boards[uid]=q.docs.map(d=>({...d.data(),id:d.id}));fire('out')},()=>{}))}
-async function fbLogin(kind,email,pass){
+async function fbLogin(kind,email,pass){const raw=String(email||'').trim(),byName=!raw.includes('@');
+ if(byName&&!ACCT_RE.test(raw.toLowerCase()))return raw?'帳號名稱只能用英文字母、數字和底線，長度 4～20 個字':'請輸入帳號名稱';
+ const r=await fbLogin0(kind,acctEmail(raw),pass);
+ return byName?r.replace('這個電子郵件已經註冊過了，請直接登入','這個帳號名稱已經有人用了，換一個吧（或直接登入）').replace(/電子郵件或密碼/g,'帳號名稱或密碼').replace('電子郵件格式不對喔','帳號名稱格式不對喔'):r}
+async function fbLogin0(kind,email,pass){
  try{const fn=kind==='up'?'createUserWithEmailAndPassword':'signInWithEmailAndPassword';const r=await NET.auth[fn](email,pass);if(NET.loginWait){NET.loginWait(r.user);NET.loginWait=null}return ''}
  catch(e){return({'auth/invalid-email':'電子郵件格式不對喔','auth/missing-password':'請輸入密碼','auth/weak-password':'密碼至少要 6 個字','auth/email-already-in-use':'這個電子郵件已經註冊過了，請直接登入',
   'auth/invalid-credential':'電子郵件或密碼不正確','auth/wrong-password':'電子郵件或密碼不正確','auth/user-not-found':'找不到這個帳號，要不要先註冊？','auth/too-many-requests':'嘗試太多次了，請稍後再試',
@@ -64,7 +73,7 @@ async function fbLogin(kind,email,pass){
   'auth/configuration-not-found':'網站還沒開啟 Firebase 登入功能，請到 Firebase 主控台的 Authentication 按「開始使用」並啟用「電子郵件/密碼」',
   'auth/unauthorized-domain':'這個網址還沒被 Firebase 允許登入，請到 Authentication 的「設定 → 已授權網域」加入',
   'auth/api-key-not-valid.-please-pass-a-valid-api-key.':'網站的 Firebase 設定不正確（API 金鑰無效）'})[e&&e.code]||`登入失敗（${(e&&e.code)||'未知錯誤'}），請把這段訊息告訴我`}}
-async function fbReset(email){try{await NET.auth.sendPasswordResetEmail(email);return '已寄出重設密碼的信，請到信箱收信'}catch(e){return e&&e.code==='auth/invalid-email'?'電子郵件格式不對喔':'寄送失敗，請確認電子郵件是否正確'}}
+async function fbReset(email){if(!String(email||'').includes('@'))return '用帳號名稱註冊的帳號沒有綁定信箱，忘記密碼無法自動重設。登入後可以在「帳號安全」改密碼，請把密碼記好喔。';try{await NET.auth.sendPasswordResetEmail(email);return '已寄出重設密碼的信，請到信箱收信'}catch(e){return e&&e.code==='auth/invalid-email'?'電子郵件格式不對喔':'寄送失敗，請確認電子郵件是否正確'}}
 function fbSkip(){if(NET.loginWait){NET.loginWait(null);NET.loginWait=null}}
 async function fbLogout(){try{await NET.auth.signOut()}catch(e){}}
 

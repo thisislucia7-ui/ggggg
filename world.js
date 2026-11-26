@@ -247,7 +247,7 @@ netInit().then(cloud=>{
  let c=null;if(cloud){try{c=JSON.parse(cloud.state)}catch(e){}}
  const apply=n=>{S=normalize(n);try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}renderRoom(true);renderMess();renderDiary();if(S.pets.length)render();else $('petsL').innerHTML=''};
  if(c&&Array.isArray(c.pets)&&(other||((c.ts||0)>(S.ts||0)&&($('ovTitle').classList.contains('on')||!S.pets.length)))){apply(c);toast('已從雲端載入你的遊玩紀錄')}
- else if(other)apply({pets:[],cur:0,slots:1,stars:0,inv:[0,0,0,0],food:0,toy:'ball',plays:{},diary:[],checkDay:'',last:Date.now()});
+ else if(other)apply({pets:[],cur:0,slots:2,gift26:1,stars:0,inv:[0,0,0,0],food:0,toy:'ball',plays:{},diary:[],checkDay:'',last:Date.now()});
  if(fb)S.owner=NET.uid;
  updateTitle();if(NET.state==='online'&&!NET.ro)netFlush(S);processInbox()});
 // ---------- 公開網站：電子郵件登入 ----------
@@ -255,5 +255,5 @@ async function doLogin(kind){const em=$('lgEmail').value.trim(),pw=$('lgPass').v
  const err=await fbLogin(kind,em,pw);$('lgMsg').textContent=err;if(!err){sfx('chime');toast(kind==='up'?'註冊成功，歡迎你！':'登入成功！')}}
 $('loginForm').onsubmit=e=>{e.preventDefault();doLogin('in')};
 $('lgUp').onclick=()=>doLogin('up');
-$('lgForgot').onclick=async()=>{const em=$('lgEmail').value.trim();if(!em){$('lgMsg').textContent='請先在上面填好電子郵件';return}$('lgMsg').textContent=await fbReset(em)};
+$('lgForgot').onclick=async()=>{const em=$('lgEmail').value.trim();if(!em){$('lgMsg').textContent='請先在上面填好帳號名稱（以前用電子郵件註冊的請填電子郵件）';return}$('lgMsg').textContent=await fbReset(em)};
 $('lgSkip').onclick=()=>{fbSkip();updateTitle()};

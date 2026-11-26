@@ -7,12 +7,14 @@ function lastAt(h,now){let t=twAt(now,h);if(t>now)t-=24*HOUR;return t}
 function nextAt(h,ts){let t=twAt(ts,h);if(t<=ts)t+=24*HOUR;return t}
 
 document.head.insertAdjacentHTML('beforeend',`<style>
-.wxchip{position:absolute;left:8px;top:52px;z-index:8;min-height:0;padding:3px 10px 3px 4px;border-radius:12px;background:light-dark(#ffffffd8,#2a2030d8);box-shadow:0 4px 12px -8px #0006;display:flex;align-items:center;gap:4px;font-size:11px;line-height:1.25;text-align:left;max-width:min(62%,320px)}
-.wxchip svg{width:24px;height:24px;flex:none}.wxchip div{min-width:0}.wxchip b{font-size:12px;white-space:nowrap}.wxchip span{display:block;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wxchip.danger span,.wxchip.warn span{color:#b0304a;font-weight:700}
-.wxchip.warn{background:#fff3c8;animation:wxw 1.6s ease-in-out infinite}.wxchip.danger{background:#ffd9df}
+.wxbar{display:flex;align-items:center;gap:8px;margin:0 0 10px;flex-wrap:wrap}
+.wxchip{flex:1 1 220px;min-width:0;min-height:0;padding:5px 12px 5px 6px;border-radius:16px;background:var(--card);box-shadow:0 4px 12px -8px #0004;display:flex;align-items:center;gap:6px;font-size:12px;line-height:1.3;text-align:left;color:var(--ink)}
+.wxchip svg{width:28px;height:28px;flex:none}.wxchip div{min-width:0}.wxchip b{font-size:13px}.wxchip span{display:block;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wxchip.warn{background:#fff3c8;animation:wxw 1.6s ease-in-out infinite}.wxchip.danger{background:#ffd9df}.wxchip.danger span,.wxchip.warn span{color:#b0304a;font-weight:700}
 @keyframes wxw{50%{box-shadow:0 0 0 4px #ffc94a66}}
-.stage[data-room] .wxchip{top:52px}
+.wxac{display:flex;gap:6px}.wxac button{min-height:36px;padding:2px 12px;font-size:13px;border-radius:99px;background:var(--card);border:2px solid var(--line);color:var(--ink)}
+#acCool[aria-pressed=true]{background:#7ac8f0;border-color:#7ac8f0;color:#fff}#acHeat[aria-pressed=true]{background:#ff8a5a;border-color:#ff8a5a;color:#fff}
+@media(max-width:760px){.wxbar{margin:0 0 8px;flex-wrap:nowrap;gap:6px}.wxchip{flex:1 1 auto;padding:4px 8px 4px 4px}.wxchip svg{width:22px;height:22px}.wxchip b{font-size:12px}.wxac{flex-direction:column;gap:4px}.wxac button{min-height:28px;padding:0 10px;font-size:12px;white-space:nowrap}}
 .wxrain line{stroke:#cfe6ff;stroke-width:1.6;stroke-linecap:round;animation:rain .7s linear infinite}
 @keyframes rain{from{transform:translate(0,-40px)}to{transform:translate(-6px,60px)}}
 .wxfrost{fill:#fff;opacity:.75}
@@ -60,7 +62,8 @@ async function fetchWx(){if(S.wx&&Date.now()-S.wx.at<30*60000&&!S.wx.sim)return;
 const wx=()=>S.wx||(S.wx=simWx());
 // ---------- 室內溫度：冷氣、暖氣 ----------
 if(!S.climate)S.climate={mode:'off',last:Date.now()};
-const ownAny=k=>(S.owned.furn||[]).some(id=>FURN[id]&&FURN[id][k]);
+const ownAny=k=>true; // 冷氣、暖氣每個玩家都有，開了才付電費
+const TRY_WEAR={};const wearOf=p=>TRY_WEAR[p.id]||p.wear||{};
 function indoorT(){const o=wx().t,base=Math.round(o+(o<20?3:o>28?-1:1));const m=(S.climate||{}).mode;
  if(m==='cool'&&base>26)return 26;if(m==='heat'&&base<23)return 23;return base}
 // ---------- 衣服 ----------
@@ -180,21 +183,24 @@ function plan(){const h=twHour(),awake=S.pets.filter(p=>!p.asleep),names=a=>a.ma
 function remind(){const h=twHour(),key=today()+':'+(h>=21||h<5?'night':h<10?'am':h<14?'noon':h<18?'pm':'eve');const pl=plan();
  if(key!==lastRemind&&!document.hidden&&P()){lastRemind=S.lastRemind=key;if(pl.lv)toast(`${pl.t}：${pl.s}`);else if(Date.now()-lastSay>8000)say(`${pl.t}${pl.s}～`)}}
 // ---------- 畫面：天氣小卡、窗外的雨、寵物狀態 ----------
-$('stage').insertAdjacentHTML('beforeend','<button type="button" class="wxchip" id="wxChip" aria-label="天氣與提醒"></button>');
-$('wxChip').addEventListener('pointerdown',e=>e.stopPropagation());$('wxChip').onclick=e=>{e.stopPropagation();openClimate()};
+document.querySelector('.band.top .head').insertAdjacentHTML('afterend','<div class="wxbar" id="wxBar"><button type="button" class="wxchip" id="wxChip" aria-label="天氣與提醒"></button><div class="wxac"><button type="button" id="acCool" aria-pressed="false">開冷氣</button><button type="button" id="acHeat" aria-pressed="false">開暖氣</button></div></div>');
+$('wxChip').onclick=e=>{e.stopPropagation();openClimate()};
+function setAC(m){const cur=(S.climate||{}).mode;S.climate=S.climate||{};S.climate.mode=cur===m?'off':m;S.climate.last=Date.now();sfx('click');save();wxApply();
+ toast(S.climate.mode==='off'?'空調關掉了':`${m==='cool'?'冷氣':'暖氣'}打開了（每小時 3 金幣電費），室內 ${indoorT()}°`)}
+$('acCool').onclick=()=>setAC('cool');$('acHeat').onclick=()=>setAC('heat');
 function wxApply(force){const w=wx(),k=wxKind(w.code),h=twHour(),night=h>=19||h<5,ic=k==='sun'&&night?'moon':k,inT=indoorT(),pl=plan();
  const tm=new Intl.DateTimeFormat('zh-TW',{timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
  $('wxChip').innerHTML=`${WXI[ic]}<div><b>${tm}・${WXN[k]} ${w.t}°・室內 ${inT}°</b><span>${esc(pl.t)}</span></div>`;
- $('wxChip').className='wxchip'+(pl.lv?' '+pl.lv:'');const st=$('stage');st.dataset.wx=k;st.classList.toggle('indoorCold',inT<16);st.classList.toggle('indoorHot',inT>30);
+ $('wxChip').className='wxchip'+(pl.lv?' '+pl.lv:'');{const m=(S.climate||{}).mode;$('acCool').setAttribute('aria-pressed',m==='cool');$('acHeat').setAttribute('aria-pressed',m==='heat');$('acCool').textContent=m==='cool'?'關冷氣':'開冷氣';$('acHeat').textContent=m==='heat'?'關暖氣':'開暖氣'}const st=$('stage');st.dataset.wx=k;st.classList.toggle('indoorCold',inT<16);st.classList.toggle('indoorHot',inT>30);
  const sc=$('scene');if(sc&&!st.dataset.room){sc.querySelector('.wxrain')?.remove();sc.querySelector('.wxfrost')?.remove();
   if(k==='rain'||k==='storm')sc.insertAdjacentHTML('beforeend',`<g class="wxrain"><clipPath id="wxclip"><rect x="276" y="50" width="96" height="84" rx="12"/></clipPath><g clip-path="url(#wxclip)"><rect x="276" y="50" width="96" height="84" fill="#5a6a8a" opacity=".35"/>${Array.from({length:16},(_,i)=>`<line x1="${282+i*6}" y1="${50+(i*23)%60}" x2="${279+i*6}" y2="${62+(i*23)%60}" style="animation-delay:${(i*.13%0.7).toFixed(2)}s"/>`).join('')}</g></g>`);
   else if(w.t<14)sc.insertAdjacentHTML('beforeend',`<path class="wxfrost" d="M276 112q10 4 14 22h-14zM372 108q-12 6-16 26h16z"/>`)}
  dress()}
 const _rr2=renderRoom;renderRoom=function(f){_rr2(f);wxApply()};
 function dress(){for(const p of S.pets){const w=wOf(p);if(!w)continue;const sv=w.querySelector('.pet');if(!sv)continue;const st=petStatus(p),f=feels(p);
-  const key=JSON.stringify([p.wear||{},st,p.asleep,sv.dataset.e,sv.dataset.sp]);
+  const key=JSON.stringify([wearOf(p),st,p.asleep,sv.dataset.e,sv.dataset.sp]);
   if(sv.dataset.dk!==key||!sv.querySelector('.wearF')){sv.querySelectorAll('.wearF,.wearB').forEach(g=>g.remove());const E=EYES[p.sp]||{a:80,b:120,y:80,r:6};let fr='',bk='';
-   for(const [sl,id] of Object.entries(p.wear||{})){if(!CLOTHES[id])continue;if(sl==='sleep'){if(p.asleep)fr+=wearSvg(id,E);continue}bk+=wearSvg(id,E,1);fr+=wearSvg(id,E)}
+   for(const [sl,id] of Object.entries(wearOf(p))){if(!CLOTHES[id])continue;if(sl==='sleep'){if(p.asleep)fr+=wearSvg(id,E);continue}bk+=wearSvg(id,E,1);fr+=wearSvg(id,E)}
    if((st==='tired'||st==='sick')&&!p.asleep)fr+=DARK(E);
    sv.insertAdjacentHTML('afterbegin',`<g class="wearB">${bk}</g>`);sv.insertAdjacentHTML('beforeend',`<g class="wearF">${fr}</g>`);sv.dataset.dk=key}
   w.classList.toggle('asleep',!!p.asleep);w.classList.toggle('sick',st==='sick');w.classList.toggle('shiver',!p.asleep&&f<16);
@@ -212,7 +218,7 @@ function openClimate(){const w=wx(),k=wxKind(w.code),inT=indoorT(),m=(S.climate|
  const pets=S.pets.map(p=>{const f=feels(p);return `<li>${esc(p.name)}：體感 ${f}°${f<16?'，好冷！':f>30?'，好熱！':'，剛剛好'}${warmth(p)?`（衣服保暖 ${warmth(p)>0?'+':''}${warmth(p)}°）`:''}</li>`}).join('');
  $('climBody').innerHTML=`<div class="clim"><div>${WXI[k]}<small>台北・${WXN[k]}${w.sim?'（估計）':''}</small><b>${w.t}°</b></div><div><small>室內溫度</small><b>${inT}°</b><small>${m==='cool'?'冷氣運轉中':m==='heat'?'暖氣運轉中':'沒開空調'}</small></div></div>
   <div class="climb"><button type="button" data-m="off" aria-pressed="${m==='off'}">關掉</button><button type="button" data-m="cool" aria-pressed="${m==='cool'}" ${hc?'':'disabled'}>冷氣 26°</button><button type="button" data-m="heat" aria-pressed="${m==='heat'}" ${hh?'':'disabled'}>暖氣 23°</button></div>
-  <p class="small">${!hc||!hh?`還沒有${!hc?'冷氣機':''}${!hc&&!hh?'和':''}${!hh?'暖氣機（或壁爐）':''}？按房間左下角的鉛筆，在「家具／掛飾」裡就能買到。`:''}開空調每小時要付 3 金幣電費。</p>
+  <p class="small">每個家都有冷氣和暖氣，打開後每小時付 3 金幣電費。也可以直接按頁面最上面的「開冷氣／開暖氣」。</p>
   <ul class="small" style="margin:6px 0 0;padding-left:18px">${pets}</ul><p class="small">太冷可以幫牠戴毛線帽、圍巾、披斗篷；太熱就把衣服脫掉、開冷氣。</p>
   <button type="button" class="ghost" id="climWear" style="width:100%;margin-top:6px">打開衣櫃</button>`;
  $('climBody').querySelector('.climb').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||b.disabled)return;(S.climate||{}).mode=b.dataset.m;S.climate.last=Date.now();sfx('click');save();wxApply();openClimate()};
