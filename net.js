@@ -78,7 +78,7 @@ function netSave(S){if(NET.state!=='online'||NET.ro)return;clearTimeout(NET.save
 async function netFlush(S){if(NET.state!=='online'||NET.ro)return;if(NET.saveBusy){NET.saveAgain=true;return}NET.saveBusy=true;
  netWatchFriends(S.friends);
  await netWrite(NET.db.doc(`data/users/${NET.uid}/save`),{state:JSON.stringify(S),ts:Date.now()});
- const home={nick:String(S.nick||'').slice(0,12),code:netCode(NET.uid),pets:S.pets.map(p=>({id:p.id,sp:p.sp,name:p.name,aff:p.aff,pers:p.pers||'',e:p.full<30||p.joy<30?'sad':'happy'})),decor:S.decor,friends:(S.friends||[]).slice(0,200),ts:0};
+ const home={nick:String(S.nick||'').slice(0,12),code:netCode(NET.uid),pets:S.pets.map(p=>({id:p.id,sp:p.sp,name:p.name,aff:p.aff,pers:p.pers||'',e:p.full<30||p.joy<30?'sad':'happy'})),decor:S.decor,friends:(S.friends||[]).slice(0,200),mono:S.mono&&S.mono.props?{pos:S.mono.pos||0,props:S.mono.props}:null,ts:0};
  const key=JSON.stringify(home);if(key!==NET.homeSent){home.ts=Date.now();if(await netWrite(NET.db.doc(`homes/${NET.uid}`),home))NET.homeSent=key}
  NET.saveBusy=false;if(NET.saveAgain){NET.saveAgain=false;netFlush(S)}}
 async function netSend(item){if(NET.state!=='online'||NET.ro)return false;

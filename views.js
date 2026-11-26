@@ -105,7 +105,7 @@ $('pkMoves').onclick=e=>{const b=e.target.closest('[data-mv]');if(!b||!pk||pk.do
 $('pkClose').onclick=()=>{$('ovPK').classList.remove('on');pk=null;vRefresh()};
 // 主人這邊：好友摸摸、餵點心、PK 會影響自己的寵物
 const _pin=processInbox;processInbox=function(){_pin();if(NET.state!=='online'||!S.pets.length)return;const got=[];
- for(const m of netInbox(NET.uid)){if(!m.act||S.seenIn.includes(m.id))continue;S.seenIn.push(m.id);
+ for(const m of netInbox(NET.uid)){if(!['pet','feed','pk'].includes(m.act)||S.seenIn.includes(m.id))continue;S.seenIn.push(m.id);
   const p=S.pets.find(q=>q.id===m.pid)||S.pets.find(q=>q.name===m.pname);if(!p)continue;const who=nickOf(m.from);
   if(m.act==='pet'){p.aff+=1;p.joy=clamp(p.joy+3);got.push(`${who}摸了摸${p.name}`)}
   if(m.act==='feed'){p.full=clamp(p.full+10);p.aff+=2;got.push(`${who}餵${p.name}吃點心`)}
