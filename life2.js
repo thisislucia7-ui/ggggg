@@ -97,14 +97,14 @@ const feels=p=>indoorT()+warmth(p);
 // awakeSince：最後一次睡飽的時間。熬夜（凌晨 2 點還醒著）→ 黑眼圈＋脾氣差；連續清醒 20 小時或補眠不滿 4 小時 → 病懨懨；連續 24 小時 → 昏倒
 S.pets.forEach(p=>{if(!p.awakeSince)p.awakeSince=Date.now()});
 const awakeH=p=>p.asleep?0:(Date.now()-(p.awakeSince||Date.now()))/HOUR;
-function status(p){if(p.asleep)return 'sleep';const h=awakeH(p);if(h>=24)return 'dying';if(p.sick||h>=20)return 'sick';if(p.tired||h>=18)return 'tired';return 'ok'}
+function petStatus(p){if(p.asleep)return 'sleep';const h=awakeH(p);if(h>=24)return 'dying';if(p.sick||h>=20)return 'sick';if(p.tired||h>=18)return 'tired';return 'ok'}
 function wakeAtOf(p){const st=p.sleepStart,h=twHourOf(st);if(h>=8&&h<19)return st+4*HOUR;const n7=nextAt(7,st);return n7-st>=4*HOUR?Math.min(n7,st+9*HOUR):st+4*HOUR}
 function doWake(p,at,early){const slept=(at-p.sleepStart)/HOUR;p.asleep=false;delete p.sleepStart;
  if(BEH[p.id]?.act==='nap'){delete BEH[p.id];const el=petEl(p);if(el){el.classList.remove('nap');el.dataset.e=''}}
  if(slept>=4){p.awakeSince=at;p.tired=false;p.sick=false;return 'rested'}
  if(slept>=1){const was=p.tired||p.sick;p.awakeSince=at;if(was){p.sick=true;p.tired=false;return 'sick'}return 'nap'}
  return 'short'}
-function sleepPet(p){if(!p||p.asleep)return;if(status(p)==='dying')return faint(p);p.asleep=true;p.sleepStart=Date.now();
+function sleepPet(p){if(!p||p.asleep)return;if(petStatus(p)==='dying')return faint(p);p.asleep=true;p.sleepStart=Date.now();
  BEH[p.id]={act:'nap',until:Date.now()+864e5};const el=petEl(p);if(el){el.innerHTML=petSvg(p.sp,'happy');el.dataset.e='nap';el.classList.add('nap')}
  sfx('lullaby');const tw=twHour(),day=tw>=8&&tw<19;
  say(day?`${p.name}躺下來補眠了……${p.tired||p.sick?'要讓牠睡滿 4 小時才會恢復精神喔！':'午睡一下下～'}`:`晚安，${p.name}。明天早上 7 點牠會自己醒來。`);
@@ -115,16 +115,16 @@ function wakePet(p){if(!p||!p.asleep)return;const slept=(Date.now()-p.sleepStart
  if(r!=='rested')emote(p,'dots',2000);save();render()}
 // 點到睡著的寵物：不會被吵醒，只會提醒
 const _wakeB=wake;wake=function(p,quiet){if(p&&p.asleep){if(!quiet){const s=(Date.now()-p.sleepStart)/HOUR;say(`噓……${p.name}睡得正香（已經睡了 ${s<1?Math.round(s*60)+' 分鐘':s.toFixed(1)+' 小時'}）。想叫醒牠可以點牠的資料卡。`)}return}return _wakeB(p,quiet)};
-const _choose=choose;choose=function(p){if(p.asleep)return 'sniff';let k=_choose(p);if(k==='nap'&&status(p)==='ok'&&Math.random()<.6)k='stretch';return k};
+const _choose=choose;choose=function(p){if(p.asleep)return 'sniff';let k=_choose(p);if(k==='nap'&&petStatus(p)==='ok'&&Math.random()<.6)k='stretch';return k};
 const _doBeh=doBeh;doBeh=function(p){if(p.asleep)return;return _doBeh(p)};
 // 哄睡覺 → 真的睡覺
 const _care2=care;care=function(id){if(id==='sleep'){const p=P();if(!p)return;if(p.asleep)return wakePet(p);return sleepPet(p)}const p=P();if(p&&p.asleep){say(`噓……${p.name}正在睡覺。`);return}return _care2(id)};
 const _feed2=feed;feed=function(){const p=P();if(p&&p.asleep){say(`${p.name}睡著了，等牠醒來再吃吧～`);sfx('squeak');return}return _feed2()};
 const _play2=play;play=function(){const p=P();if(p&&p.asleep){say(`噓……${p.name}在睡覺，不要吵醒牠。`);sfx('squeak');return}return _play2()};
 if(typeof petBlocked==='function'){const _pb=petBlocked;petBlocked=function(p){if(p.asleep){say(`${p.name}睡著了，輕輕摸一下就好……`);return true}
- const st=status(p);if((st==='tired'||st==='sick')&&!busy&&Math.random()<.22){say(`${p.name}熬夜脾氣超差！`);bite(p);return true}return _pb(p)}}
+ const st=petStatus(p);if((st==='tired'||st==='sick')&&!busy&&Math.random()<.22){say(`${p.name}熬夜脾氣超差！`);bite(p);return true}return _pb(p)}}
 // 病懨懨時友好度只長一半
-const _gain2=gain;gain=function(a,p){p=p||P();if(p&&status(p)==='sick'&&a>1)a=Math.ceil(a/2);return _gain2(a,p)};
+const _gain2=gain;gain=function(a,p){p=p||P();if(p&&petStatus(p)==='sick'&&a>1)a=Math.ceil(a/2);return _gain2(a,p)};
 
 // ---------- 昏倒 → 送醫 → 埋葬（都要付錢） ----------
 document.body.insertAdjacentHTML('beforeend',`<div class="ov" id="ovVet"><div class="dlg"><h2 id="vetT"></h2><div class="biteface" id="vetFace"></div><div class="vet" id="vetTxt"></div><div class="row" id="vetBtns"></div></div></div>
@@ -165,14 +165,14 @@ function lifeTick(){if(!S.pets.length)return;const now=Date.now();
  // 冷熱影響（只在開著遊戲時）
  const dm=Math.min(5,(now-(S.wxTick||now))/60000);S.wxTick=now;
  for(const p of S.pets){const f=feels(p);if(f<16){p.joy=clamp(p.joy-dm*.5)}else if(f>30){p.joy=clamp(p.joy-dm*.3);if(p.water!=null)p.water=clamp(p.water-dm*.6)}}
- const dy=S.pets.find(p=>status(p)==='dying');if(dy&&!document.querySelector('.ov.on'))faint(dy);
+ const dy=S.pets.find(p=>petStatus(p)==='dying');if(dy&&!document.querySelector('.ov.on'))faint(dy);
  remind();wxApply();save()}
 // ---------- 提醒：現在該做什麼 ----------
 function plan(){const h=twHour(),awake=S.pets.filter(p=>!p.asleep),names=a=>a.map(p=>p.name).slice(0,2).join('、')+(a.length>2?'…':'');
- const sickP=S.pets.filter(p=>['sick','tired'].includes(status(p))&&!p.asleep),worst=S.pets.filter(p=>!p.asleep&&awakeH(p)>=18);
+ const sickP=S.pets.filter(p=>['sick','tired'].includes(petStatus(p))&&!p.asleep),worst=S.pets.filter(p=>!p.asleep&&awakeH(p)>=18);
  if(worst.length)return {lv:'danger',t:`${names(worst)} 已經 ${Math.floor(awakeH(worst[0]))} 小時沒睡！`,s:'超過 24 小時會昏倒，快讓牠睡覺'};
  if(h>=21||h<5){if(awake.length)return {lv:'warn',t:'晚上了，該哄寵物睡覺',s:`${names(awake)} 還醒著，熬夜隔天會有黑眼圈`};return {t:'夜深了，大家都睡了',s:'明天早上 7 點會醒來'}}
- if(sickP.length&&h>=8&&h<19)return {lv:'warn',t:`${names(sickP)} ${sickP.some(p=>status(p)==='sick')?'病懨懨':'有黑眼圈'}`,s:'白天讓牠補眠滿 4 小時才會恢復'};
+ if(sickP.length&&h>=8&&h<19)return {lv:'warn',t:`${names(sickP)} ${sickP.some(p=>petStatus(p)==='sick')?'病懨懨':'有黑眼圈'}`,s:'白天讓牠補眠滿 4 小時才會恢復'};
  if(h<10)return {t:'早安！',s:'準備早餐和清水，開始新的一天'};
  if(h<14)return {t:'午餐時間',s:'餵飯、陪牠玩一下'};
  if(h<18)return {t:'午後時光',s:'洗澎澎、梳梳毛、玩小遊戲'};
@@ -191,7 +191,7 @@ function wxApply(force){const w=wx(),k=wxKind(w.code),h=twHour(),night=h>=19||h<
   else if(w.t<14)sc.insertAdjacentHTML('beforeend',`<path class="wxfrost" d="M276 112q10 4 14 22h-14zM372 108q-12 6-16 26h16z"/>`)}
  dress()}
 const _rr2=renderRoom;renderRoom=function(f){_rr2(f);wxApply()};
-function dress(){for(const p of S.pets){const w=wOf(p);if(!w)continue;const sv=w.querySelector('.pet');if(!sv)continue;const st=status(p),f=feels(p);
+function dress(){for(const p of S.pets){const w=wOf(p);if(!w)continue;const sv=w.querySelector('.pet');if(!sv)continue;const st=petStatus(p),f=feels(p);
   const key=JSON.stringify([p.wear||{},st,p.asleep,sv.dataset.e,sv.dataset.sp]);
   if(sv.dataset.dk!==key||!sv.querySelector('.wearF')){sv.querySelectorAll('.wearF,.wearB').forEach(g=>g.remove());const E=EYES[p.sp]||{a:80,b:120,y:80,r:6};let fr='',bk='';
    for(const [sl,id] of Object.entries(p.wear||{})){if(!CLOTHES[id])continue;if(sl==='sleep'){if(p.asleep)fr+=wearSvg(id,E);continue}bk+=wearSvg(id,E,1);fr+=wearSvg(id,E)}
@@ -202,7 +202,7 @@ function dress(){for(const p of S.pets){const w=wOf(p);if(!w)continue;const sv=w
   const tg=w.querySelector('.ptag');if(tg&&!(p.wetUntil&&p.wetUntil>Date.now())){tg.textContent=p.name+(p.asleep?'・睡覺中':st==='sick'?'・病懨懨':st==='tired'?'・黑眼圈':f<16?'・好冷':f>30?'・好熱':'')}}}
 const _sync2=syncPets;syncPets=function(){_sync2();for(const p of S.pets)if(p.asleep&&!BEH[p.id])BEH[p.id]={act:'nap',until:Date.now()+864e5};dress()};
 // 冷熱時偶爾說話
-setInterval(()=>{const p=P();if(!p||p.asleep||busy||document.hidden||document.querySelector('.ov.on')||Date.now()-lastSay<20000||Math.random()>.35)return;const f=feels(p),k=wxKind(wx().code),st=status(p);
+setInterval(()=>{const p=P();if(!p||p.asleep||busy||document.hidden||document.querySelector('.ov.on')||Date.now()-lastSay<20000||Math.random()>.35)return;const f=feels(p),k=wxKind(wx().code),st=petStatus(p);
  if(st==='sick')return say(`${p.name}：「頭暈暈的……好想睡覺……」`);if(st==='tired')return say(`${p.name}：「哈～欠……昨天沒睡好，不要煩我啦！」`);
  if(f<16)return say(`${p.name}：「好冷喔……${ownAny('heat')?'可以開暖氣嗎？':'想要一條圍巾或是暖氣……'}」`);
  if(f>30)return say(`${p.name}：「好熱好熱～${ownAny('cool')?'開冷氣啦！':'可以買台冷氣嗎？'}」`);
@@ -232,7 +232,7 @@ function openWear(pid){const p=S.pets.find(q=>q.id===(pid||wearPid))||P();if(!p)
   sfx('click');save();dress();openWear(p.id)};
  $('ovWear').classList.add('on')}
 // 寵物資料卡：加上睡覺狀態、叫醒／哄睡、衣櫃
-if(typeof openPetCard==='function'){const _opc=openPetCard;openPetCard=function(pid){_opc(pid);const p=S.pets.find(q=>q.id===pid)||P();if(!p)return;const st=status(p),row=$('pcBody').querySelector('.row');if(!row)return;
+if(typeof openPetCard==='function'){const _opc=openPetCard;openPetCard=function(pid){_opc(pid);const p=S.pets.find(q=>q.id===pid)||P();if(!p)return;const st=petStatus(p),row=$('pcBody').querySelector('.row');if(!row)return;
   const h=awakeH(p),info={sleep:`睡覺中（已睡 ${((Date.now()-p.sleepStart)/HOUR).toFixed(1)} 小時）`,ok:`精神很好（醒著 ${h.toFixed(1)} 小時）`,tired:'黑眼圈・脾氣差：白天讓牠睡滿 4 小時',sick:'病懨懨：要睡滿 4 小時才會好',dying:'快撐不住了！'}[st];
   row.insertAdjacentHTML('beforebegin',`<p class="small" style="margin:6px 0">${info}・體感 ${feels(p)}°</p>`);
   row.insertAdjacentHTML('afterbegin',`<button class="ghost" id="pcSleep">${p.asleep?'叫醒牠':'哄牠睡覺'}</button><button class="ghost" id="pcWear">衣櫃</button>`);

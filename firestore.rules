@@ -27,5 +27,19 @@ service cloud.firestore {
         && (!('text' in request.resource.data) || (request.resource.data.text is string && request.resource.data.text.size() <= 200));
       allow delete: if signedIn() && request.auth.uid == host;
     }
+
+    // 在線狀態與好友連線遊戲（你畫我猜）：登入者可讀，只能寫自己的
+    match /live/{uid} {
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // 體育館每週成績：登入者可讀（排行榜），只能寫自己的
+    match /gym/{uid} {
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == uid
+        && request.resource.data.total is number && request.resource.data.total <= 20000
+        && request.resource.data.nick is string && request.resource.data.nick.size() <= 12;
+    }
   }
 }
