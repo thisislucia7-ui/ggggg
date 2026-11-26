@@ -255,5 +255,5 @@ async function doLogin(kind){const em=$('lgEmail').value.trim(),pw=$('lgPass').v
  const err=await fbLogin(kind,em,pw);$('lgMsg').textContent=err;if(!err){sfx('chime');toast(kind==='up'?'註冊成功，歡迎你！':'登入成功！')}}
 $('loginForm').onsubmit=e=>{e.preventDefault();doLogin('in')};
 $('lgUp').onclick=()=>doLogin('up');
-$('lgForgot').onclick=async()=>{const em=$('lgEmail').value.trim();if(!em){$('lgMsg').textContent='請先在上面填好電子郵件';return}$('lgMsg').textContent=await fbReset(em)};
+$('lgForgot').onclick=async()=>{const em=$('lgEmail').value.trim();if(!em){$('lgMsg').textContent='請先在上面填好帳號名稱（以前用電子郵件註冊的請填電子郵件）';return}$('lgMsg').textContent=await fbReset(em)};
 $('lgSkip').onclick=()=>{fbSkip();updateTitle()};

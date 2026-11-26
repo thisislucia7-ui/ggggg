@@ -21,7 +21,7 @@
 
 | 在哪裡開 | 登入方式 | 存檔與好友 |
 |---|---|---|
-| Firebase 網站 | 電子郵件＋密碼 | 雲端存檔、好友、留言板 |
+| Firebase 網站 | 帳號名稱＋密碼（不需要電子郵件） | 雲端存檔、好友、留言板 |
 | claude.ai artifact | Claude 帳號 | 雲端存檔、好友、留言板 |
 | 直接開檔案／其他網站 | 不需要 | 單機，紀錄只存在該瀏覽器 |
 
@@ -44,13 +44,13 @@
 
 ## 帳號與網域安全設定（需要在主控台手動做一次）
 
-程式已經做好：註冊要 8 個字以上、含英文和數字的密碼；寄電子郵件驗證信，沒驗證的帳號不能加好友和留言；密碼連錯 5 次暫時鎖定；選單「帳號安全」可以改密碼、刪除帳號；網站送出 HTTPS 強制（HSTS）、防嵌入（X-Frame-Options）、內容安全政策（CSP）等安全標頭。
+程式已經做好：用「帳號名稱＋密碼」註冊，不需要電子郵件或手機，不蒐集個資（內部會轉成 `名稱@player.gameforan-37213.web.app` 這種不會收信的格式給 Firebase 登入用；以前用電子郵件註冊的帳號照常可以登入）；密碼要 8 個字以上、含英文和數字；密碼連錯 5 次暫時鎖定；選單「帳號安全」可以改密碼、刪除帳號；網站送出 HTTPS 強制（HSTS）、防嵌入（X-Frame-Options）、內容安全政策（CSP）等安全標頭。
 
 以下要在 Firebase／Google Cloud 主控台設定：
 
 1. **Firestore 規則**：把 `firestore.rules` 整份貼到 Firestore →「規則」並發布。
 2. **Authentication → 設定 → 已授權網域**：只留 `gameforan-37213.web.app`、`gameforan-37213.firebaseapp.com`（和自訂網域）；不用的 `localhost` 可以刪掉。
 3. **Authentication → 設定 → 密碼政策**：開啟「強制執行」，最少 8 個字、需要英文字母和數字。
-4. **Authentication → 設定 → 使用者動作**：開啟「電子郵件列舉保護」。
+4. **Authentication → 設定 → 使用者動作**：開啟「電子郵件列舉保護」（別人就試不出哪些帳號名稱已經註冊過）。
 5. **Google Cloud 主控台 → API 和服務 → 憑證 → Browser key**：應用程式限制選「HTTP 參照網址」，加入 `https://gameforan-37213.web.app/*`、`https://gameforan-37213.firebaseapp.com/*`、`https://gameforan-37213--*.web.app/*`。
 6. **（選用）自訂網域**：Hosting →「新增自訂網域」，照指示在網域商加 DNS 記錄，Firebase 會自動申請 HTTPS 憑證；加好後記得也加進第 2 步的已授權網域。
