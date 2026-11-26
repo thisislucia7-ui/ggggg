@@ -26,7 +26,7 @@ function syncPets(){const L=$('petsL'),ids=new Set(S.pets.map(p=>p.id));
  posBubble()}
 function posBubble(){const p=P();if(!p||!POS[p.id])return;$('bubble').style.left=Math.max(26,Math.min(74,POS[p.id].x))+'%'}
 setInterval(()=>{if(editMode||!S.pets.length||(typeof inRoom!=='undefined'&&inRoom))return;const one=S.pets.length===1;
- S.pets.forEach(p=>{if((busy&&p===P())||p.id===summoned||(fight&&(fight.a===p||fight.b===p)))return;if(Math.random()>.35)return;
+ S.pets.forEach(p=>{if((busy&&p===P())||p.id===summoned||(fight&&(fight.a===p||fight.b===p))||(typeof BEH!=='undefined'&&BEH[p.id]&&(BEH[p.id].until>Date.now()||BEH[p.id].act==='nap')))return;if(Math.random()>.35)return;
   POS[p.id]=one?{x:32+Math.random()*36,y:5+Math.random()*8}:freeSpot(p);const w=wOf(p);w&&place(w,POS[p.id])});posBubble()},3200);
 function freeSpot(p){let best=null,bd=-1;for(let k=0;k<6;k++){const c={x:10+Math.random()*80,y:3+Math.random()*14};const d=Math.min(...S.pets.filter(q=>q!==p&&POS[q.id]).map(q=>Math.abs(POS[q.id].x-c.x)),99);if(d>bd){bd=d;best=c}}return best}
 function summon(){const p=P(),w=wOf(p);if(!w)return;summoned=p.id;w.classList.add('come');POS[p.id]={x:50,y:9};place(w,POS[p.id]);posBubble();

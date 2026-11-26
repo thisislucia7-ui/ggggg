@@ -171,8 +171,8 @@ applyView();
 
 // ---------- 不要長按選取 ----------
 document.head.insertAdjacentHTML('beforeend',`<style>
-html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+html,body,*{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,[contenteditable],input *,textarea *{-webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default!important}
 img,svg{-webkit-user-drag:none;user-drag:none}
 </style>`);
 document.addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea,[contenteditable]'))e.preventDefault()});
