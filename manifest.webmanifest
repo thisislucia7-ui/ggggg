@@ -1,0 +1,16 @@
+{
+  "name": "轉身成為小寵物",
+  "short_name": "小寵物",
+  "description": "選一隻小動物，陪你吃飯、玩耍、記下每天的心情。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffe4cf",
+  "theme_color": "#ffd3b5",
+  "lang": "zh-Hant",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

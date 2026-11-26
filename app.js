@@ -172,7 +172,7 @@ function syncSound(){['tMusic','sMusic'].forEach(i=>$(i).setAttribute('aria-pres
 $('tGo').onclick=()=>{Snd.init();sfx('chime');Snd.play('room');$('ovTitle').classList.remove('on');
  if(!S.pets.length)return openAdopt('first');enterRoom()};
 function enterRoom(){checkStreak();render();const p=P(),e=expr(p);
- say(timeHello()+(e==='sad'?'我好想你……肚子也有點餓了':e==='calm'?'你回來啦～陪我玩一下嘛':`你來啦！${p.name}好開心見到你！`));anim('hop');sfx('squeak');setTimeout(openMood,900)}
+ say(timeHello()+(e==='sad'?'我好想你……肚子也有點餓了':e==='calm'?'你回來啦～陪我玩一下嘛':`你來啦！${p.name}好開心見到你！`));anim('hop');sfx('squeak');setTimeout(()=>{if(S.checkDay!==today())openMood()},900)}
 function checkStreak(){const t=today();if(S.streak.last===t)return;const y=new Date(Date.now()-864e5).toLocaleDateString('sv');
  S.streak.n=S.streak.last===y?S.streak.n+1:1;S.streak.last=t;
  if(S.streak.n>1&&S.streak.n%7===0){S.stars+=2;setTimeout(()=>remember(P(),`連續陪伴 ${S.streak.n} 天`),100);setTimeout(()=>{toast(`連續陪伴 ${S.streak.n} 天！送你 2 顆星星`);confetti();sfx('level')},1500)}
@@ -197,7 +197,7 @@ $('adoptForm').onsubmit=e=>{e.preventDefault();if(S.pets.length>=S.slots)return;
  S.pets.push({id:'p'+Date.now().toString(36),sp:adSp,name:$('adName').value.trim()||SP[adSp].n,aff:0,full:70,joy:70,pers:adPers});
  S.cur=S.pets.length-1;P().born=Date.now();remember(P(),'我們第一次見面的日子');$('ovAdopt').classList.remove('on');checkStreak();render();renderDiary();anim('spin');sfx('level');confetti();
  setTimeout(()=>say(`你好！我是${P().name}，謝謝你選了我，請多多指教！`),500);
- if(adMode==='first')setTimeout(openMood,1600)};
+ if(adMode==='first')setTimeout(()=>{if(S.checkDay!==today())openMood()},1600)};
 $('slots').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
  if(b.dataset.i!==undefined){const i=+b.dataset.i;if(i===S.cur)return;S.cur=i;save();anim('spin');sfx('swoosh');setTimeout(()=>{render();renderDiary()},400);setTimeout(()=>say(`轉身～換我${P().name}陪你！`),800)}
  else if(b.dataset.adopt)openAdopt('more');
