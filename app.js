@@ -40,7 +40,11 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const clamp=v=>Math.max(0,Math.min(100,v));
-const today=()=>new Date().toLocaleDateString('sv');
+// 遊戲時間一律以台灣時區為準
+const TZ='Asia/Taipei';
+function twHour(){return Number(new Intl.DateTimeFormat('en-US',{timeZone:TZ,hour:'numeric',hourCycle:'h23'}).format(new Date()))%24}
+function twMin(){return Number(new Intl.DateTimeFormat('en-US',{timeZone:TZ,minute:'numeric'}).format(new Date()))}
+const today=()=>new Date().toLocaleDateString('sv',{timeZone:TZ});
 const KEY='petDiary.v2';
 
 function load(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}
@@ -51,7 +55,7 @@ function load(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){
     s.pets=[{id:'p1',sp,name:o.name,aff:o.aff||0,full:o.full??70,joy:o.joy??70}];s.diary=(o.diary||[]).map(d=>({...d,mood:d.mood||'calm'}));s.checkDay=o.checkDay||'';s.last=o.last||Date.now()}}catch(e){}}
  return normalize(s)}
 function normalize(s){if(!s.plays||'n' in s.plays)s.plays={};if(!s.streak)s.streak={last:'',n:0};if(!TOYS.some(t=>t.id===s.toy))s.toy='ball';
- if(s.coins==null)s.coins=50;if(!s.decor)s.decor=JSON.parse(JSON.stringify(DEFAULT_DECOR));if(!s.owned)s.owned={wall:['peach'],floor:['wood'],rug:['pink','none'],furn:['shelf','plant','lamp']};
+ if(s.coins==null)s.coins=20000;if(!s.decor)s.decor=JSON.parse(JSON.stringify(DEFAULT_DECOR));if(!s.owned)s.owned={wall:['peach'],floor:['wood'],rug:['pink','none'],furn:['shelf','plant','lamp']};
  ['mess','friends','seenIn','giftsIn','ignored'].forEach(k=>{if(!Array.isArray(s[k]))s[k]=[]});if(!s.poopDay)s.poopDay={};return s}
 let S=load();
 function save(){S.ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(typeof netSave==='function')netSave(S)}
@@ -63,7 +67,7 @@ const expr=p=>{const v=Math.min(p.full,p.joy);return v>=60?'happy':v>=30?'calm':
 function plays(){if(S.plays.day!==today())S.plays={day:today()};return S.plays}
 const playsLeft=id=>DAILY-(plays()[id]||0);
 const dayNo=()=>Math.floor((new Date(today()+'T00:00:00')).getTime()/864e5);
-function timeHello(){const h=new Date().getHours();return h<5?'這麼晚還沒睡呀？':h<11?'早安！':h<14?'午安～':h<18?'下午好！':h<22?'晚上好～':'夜深了，'}
+function timeHello(){const h=twHour();return h<5?'這麼晚還沒睡呀？':h<11?'早安！':h<14?'午安～':h<18?'下午好！':h<22?'晚上好～':'夜深了，'}
 
 function face(m,s=40){const mouth=m==='happy'?'<path d="M13 24q7 8 14 0" fill="none" stroke="#4a2a1a" stroke-width="2.6" stroke-linecap="round"/>':m==='calm'?'<path d="M14 26h12" stroke="#4a2a1a" stroke-width="2.6" stroke-linecap="round"/>':'<path d="M13 29q7-7 14 0" fill="none" stroke="#4a2a1a" stroke-width="2.6" stroke-linecap="round"/><path d="M12 19q-2 5 0 7q2-2 0-7z" fill="#5aa0e8"/>';
  return `<svg width="${s}" height="${s}" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="${MOODS[m].c}"/><circle cx="14" cy="16" r="2.4" fill="#4a2a1a"/><circle cx="26" cy="16" r="2.4" fill="#4a2a1a"/>${mouth}</svg>`}
@@ -131,7 +135,7 @@ function play(){if(busy)return;decay();const p=P(),t=TOYS.find(x=>x.id===S.toy);
 
 
 // ===== 溫馨細節：時段、光點、閒聊、回憶 =====
-function tod(){const h=new Date().getHours();return h>=5&&h<10?'morning':h<17&&h>=10?'day':h>=17&&h<19?'evening':'night'}
+function tod(){const h=twHour();return h>=5&&h<10?'morning':h<17&&h>=10?'day':h>=17&&h<19?'evening':'night'}
 for(let i=0;i<9;i++){const m=document.createElement('span');m.className='mote';m.style.left=(8+Math.random()*84)+'%';m.style.top=(30+Math.random()*55)+'%';m.style.animationDelay=(-Math.random()*9)+'s';m.style.animationDuration=(7+Math.random()*5)+'s';$('stage').append(m)}
 let lastSay=Date.now();
 const IDLE={
@@ -173,7 +177,7 @@ $('tGo').onclick=()=>{Snd.init();sfx('chime');Snd.play('room');$('ovTitle').clas
  if(!S.pets.length)return openAdopt('first');enterRoom()};
 function enterRoom(){checkStreak();render();const p=P(),e=expr(p);
  say(timeHello()+(e==='sad'?'我好想你……肚子也有點餓了':e==='calm'?'你回來啦～陪我玩一下嘛':`你來啦！${p.name}好開心見到你！`));anim('hop');sfx('squeak');setTimeout(()=>{if(S.checkDay!==today())openMood()},900)}
-function checkStreak(){const t=today();if(S.streak.last===t)return;const y=new Date(Date.now()-864e5).toLocaleDateString('sv');
+function checkStreak(){const t=today();if(S.streak.last===t)return;const y=new Date(Date.now()-864e5).toLocaleDateString('sv',{timeZone:TZ});
  S.streak.n=S.streak.last===y?S.streak.n+1:1;S.streak.last=t;
  if(S.streak.n>1&&S.streak.n%7===0){S.stars+=2;setTimeout(()=>remember(P(),`連續陪伴 ${S.streak.n} 天`),100);setTimeout(()=>{toast(`連續陪伴 ${S.streak.n} 天！送你 2 顆星星`);confetti();sfx('level')},1500)}
  else if(S.streak.n>1)setTimeout(()=>toast(`連續陪伴第 ${S.streak.n} 天，謝謝你每天都來！`),1500);save()}
@@ -336,7 +340,7 @@ const CHAT=[
  ['我們是好朋友嗎？',p=>p.aff>=200?['當然！你是我最好最好的朋友！']:p.aff>=100?['是呀！我們已經是好朋友了！']:['我們正在變成好朋友喔，再多陪我一下下～'],'hop'],
  ['給你一個抱抱',p=>['抱緊緊～好溫暖！','嗚嗚，好幸福的抱抱！'],'hug'],
  ['你今天開心嗎？',p=>expr(p)==='happy'?['超開心！因為你在這裡！']:expr(p)==='calm'?['還不錯～如果你陪我玩就會更開心！']:['有一點點寂寞……可以陪陪我嗎？'],'hop'],
- [()=>new Date().getHours()<12?'早安！':'晚安～',p=>new Date().getHours()<12?['早安！今天也一起加油吧！']:['晚安，祝你做個好夢，明天見！'],'purr']];
+ [()=>twHour()<12?'早安！':'晚安～',p=>twHour()<12?['早安！今天也一起加油吧！']:['晚安，祝你做個好夢，明天見！'],'purr']];
 function openChat(){const p=P(),left=Math.max(0,5-(daily().c.chat||0));$('chH').textContent=`想跟${p.name}說什麼？`;
  $('chSub').textContent=left?`今天聊天還能增加 ${left} 次友好度（每次 +2）`:'今天聊天的友好度加滿了，但牠還是很喜歡聽你說話！';
  $('chList').innerHTML=CHAT.map((c,i)=>`<button type="button" data-ch="${i}">${typeof c[0]==='function'?c[0]():c[0]}</button>`).join('');$('chReply').hidden=true;$('ovChat').classList.add('on')}
