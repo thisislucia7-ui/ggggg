@@ -41,3 +41,16 @@
 | `life.js` | 個性、咬人、手機選單、個人資訊、放養／賣出 |
 | `firebase.json`、`firestore.rules` | Firebase 部署設定與資料庫安全規則 |
 | `.github/workflows/firebase.yml` | 自動部署流程 |
+
+## 帳號與網域安全設定（需要在主控台手動做一次）
+
+程式已經做好：註冊要 8 個字以上、含英文和數字的密碼；寄電子郵件驗證信，沒驗證的帳號不能加好友和留言；密碼連錯 5 次暫時鎖定；選單「帳號安全」可以改密碼、刪除帳號；網站送出 HTTPS 強制（HSTS）、防嵌入（X-Frame-Options）、內容安全政策（CSP）等安全標頭。
+
+以下要在 Firebase／Google Cloud 主控台設定：
+
+1. **Firestore 規則**：把 `firestore.rules` 整份貼到 Firestore →「規則」並發布。
+2. **Authentication → 設定 → 已授權網域**：只留 `gameforan-37213.web.app`、`gameforan-37213.firebaseapp.com`（和自訂網域）；不用的 `localhost` 可以刪掉。
+3. **Authentication → 設定 → 密碼政策**：開啟「強制執行」，最少 8 個字、需要英文字母和數字。
+4. **Authentication → 設定 → 使用者動作**：開啟「電子郵件列舉保護」。
+5. **Google Cloud 主控台 → API 和服務 → 憑證 → Browser key**：應用程式限制選「HTTP 參照網址」，加入 `https://gameforan-37213.web.app/*`、`https://gameforan-37213.firebaseapp.com/*`、`https://gameforan-37213--*.web.app/*`。
+6. **（選用）自訂網域**：Hosting →「新增自訂網域」，照指示在網域商加 DNS 記錄，Firebase 會自動申請 HTTPS 憑證；加好後記得也加進第 2 步的已授權網域。
