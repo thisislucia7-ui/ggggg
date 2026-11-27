@@ -52,16 +52,6 @@ jobs:
           PID: ${{ steps.sa.outputs.project }}
         run: npx -y firebase-tools@13 deploy --only hosting --project "$PID" --non-interactive
 
-      - name: 部署資料庫安全規則
-        continue-on-error: true
-        env:
-          PID: ${{ steps.sa.outputs.project }}
-        run: |
-          if ! npx -y firebase-tools@13 deploy --only firestore:rules --project "$PID" --non-interactive; then
-            echo "::warning::資料庫安全規則沒有部署成功（金鑰缺少權限）。請為服務帳戶加上「Firebase 規則管理員」角色，或把 firestore.rules 的內容貼到 Firebase 主控台 Firestore 的「規則」分頁。"
-            exit 1
-          fi
-
       - name: 網址
         env:
           PID: ${{ steps.sa.outputs.project }}
