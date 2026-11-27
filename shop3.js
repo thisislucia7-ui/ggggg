@@ -6,8 +6,8 @@ if(grant26(S)){save();setTimeout(()=>{render();toast('🎁 送你 20000 金幣�
 
 // ---------- 好友遊戲：寵物小鎮、垂釣湖、體育館同一個視窗 ----------
 document.head.insertAdjacentHTML('beforeend',`<style>
-.fgtabs{display:flex;gap:6px;padding:8px 14px 0;background:var(--bg);position:sticky;top:58px;z-index:2;overflow-x:auto}
-.fgtabs button{flex:1 0 auto;min-height:40px;padding:4px 14px;font-size:15px;border-radius:14px 14px 0 0;background:var(--line);color:var(--ink);border:0}
+.fgtabs{flex:none;display:flex;gap:6px;padding:8px 10px 0;background:var(--room);position:sticky;top:58px;z-index:2;overflow-x:auto;scrollbar-width:none}.fgtabs::-webkit-scrollbar{display:none}
+.fgtabs button{flex:1 0 auto;min-height:44px;padding:6px 12px;font-size:15px;white-space:nowrap;border-radius:14px 14px 0 0;background:var(--line);color:var(--ink);border:0}
 .fgtabs button[aria-pressed=true]{background:var(--card);color:var(--berry);font-weight:700}
 #gBody .twrap{height:auto;width:100%;background:none;overflow:visible}#gBody .twrap>.ghead{display:none}
 </style>`);
@@ -83,6 +83,7 @@ function renderShop(){if(view!=='shop')return;const list=itemsOf(shCat);
   return `<div class="sitem ${tr?'try':''} ${c?'inc':''}" data-k="${ckey(x)}">${tr?'<span class="tag">試穿中</span>':''}<button type="button" class="pv" data-try="${ckey(x)}" aria-label="試用${esc(x.n)}" style="background:none;border:0;padding:0;min-height:0;box-shadow:none">${x.pv}</button><b>${esc(x.n)}</b>${x.d?`<em>${esc(x.d)}</em>`:''}
   ${x.own&&!consum?'<em>已經擁有</em>':`<span class="pr">${COIN(13)} ${x.p}</span>`}
   <div class="acts"><button type="button" class="ghost" data-try="${ckey(x)}">${tr?'取消試用':x.t==='wear'?'試穿':'試用'}</button>${x.own&&!consum?'':`<button type="button" class="${c?'ghost':'save'}" data-cart="${ckey(x)}">${c?(consum?'再加一份':'已在車上'):'加入購物車'}</button>`}</div></div>`}).join('')||'<p class="small">這裡還沒有商品。</p>';
+ if(shCat==='fish')$('shGrid').insertAdjacentHTML('afterbegin','<button type="button" class="sitem save" id="shGoFish" style="justify-content:center;font-size:15px">🎣<br>去垂釣湖<br>釣魚</button>');
  renderCart()}
 function cartTotal(){return cart.reduce((a,c)=>a+c.p*(c.qty||1),0)}
 function renderCart(){const n=cart.reduce((a,c)=>a+(c.qty||1),0),tot=cartTotal();
@@ -100,7 +101,7 @@ function toggleTry(key){const [t,id]=key.split(':'),p=P();
  if(t==='bait'){const b=BAITS[id];toast(`試用「${b.n}」：稀有魚機率 +${b.luck}。每包 ${BAIT_PACK} 個，拋一次竿用 1 個`)}
  if(t==='food'){const f=FOOD[SP[p.sp].grp][+id+1];say(`${p.name}聞了聞「${f[0]}」：「${pick(['好香喔！可以買給我嗎？','口水流下來了……','這個一定很好吃！'])}」`);animEl($('pet'),'hop',600)}
  sfx('pop');renderShop();const st=$('stage').getBoundingClientRect();if(st.bottom<60)scrollTo({top:scrollY+st.top-8,behavior:'smooth'})}
-document.addEventListener('click',e=>{if(view!=='shop')return;if(e.target.closest('#shExit')){setView('home');return}const sc=e.target.closest('#shTabs [data-sc]');if(sc){shCat=sc.dataset.sc;sfx('click');renderShop();return}
+document.addEventListener('click',e=>{if(view!=='shop')return;if(e.target.closest('#shExit')){setView('home');return}if(e.target.closest('#shGoFish')){openFG('fish');return}const sc=e.target.closest('#shTabs [data-sc]');if(sc){shCat=sc.dataset.sc;sfx('click');renderShop();return}
  const tr=e.target.closest('#shGrid [data-try]');if(tr){toggleTry(tr.dataset.try);return}
  const ca=e.target.closest('#shGrid [data-cart]');if(ca){const x=itemsOf(shCat).find(i=>ckey(i)===ca.dataset.cart);if(!x)return;const c=inCart(x);
   if(c){if(x.t==='bait'||x.t==='food')c.qty++;else{toast('已經在購物車裡了');return}}else cart.push({...x,qty:1});sfx('coin');toast(`「${x.n}」加入購物車`);renderShop();return}

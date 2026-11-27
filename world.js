@@ -246,7 +246,8 @@ netInit().then(cloud=>{
  const fb=NET.mode==='firebase'&&NET.state==='online',other=fb&&S.owner&&S.owner!==NET.uid;
  let c=null;if(cloud){try{c=JSON.parse(cloud.state)}catch(e){}}
  const apply=n=>{S=normalize(n);try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}renderRoom(true);renderMess();renderDiary();if(S.pets.length)render();else $('petsL').innerHTML=''};
- if(c&&Array.isArray(c.pets)&&(other||((c.ts||0)>(S.ts||0)&&($('ovTitle').classList.contains('on')||!S.pets.length)))){apply(c);toast('已從雲端載入你的遊玩紀錄')}
+ const fresh=fb&&!S.owner; // 這個瀏覽器還沒綁過這個帳號：一律用雲端存檔
+ if(c&&Array.isArray(c.pets)&&(other||fresh||((c.ts||0)>(S.ts||0)&&($('ovTitle').classList.contains('on')||!S.pets.length)))){apply(c);toast('已從雲端載入你的遊玩紀錄')}
  else if(other)apply({pets:[],cur:0,slots:2,gift26:1,stars:0,inv:[0,0,0,0],food:0,toy:'ball',plays:{},diary:[],checkDay:'',last:Date.now()});
  if(fb)S.owner=NET.uid;
  updateTitle();if(NET.state==='online'&&!NET.ro)netFlush(S);processInbox()});

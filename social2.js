@@ -42,7 +42,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 #menuGrid [data-extra=friends] i.on{background:#3cc47c}
 </style>`);
 function hHash(id){let h=7;for(const c of id)h=(h*31+c.charCodeAt(0))>>>0;return h}
-function houseSvg(id,h){const k=hHash(id),roof=['#e8507a','#7aa8ff','#5fc9ae','#f0a04b','#b58cff','#e86a5a'][k%6],wall=['#fff6ea','#fdeedd','#eef6ff','#f2fbf4','#fff0f6'][(k>>3)%5],on=isOnline(id);
+function houseSvg(id,h){const k=hHash(id),roof=['#e8507a','#7aa8ff','#5fc9ae','#f0a04b','#b58cff','#e86a5a'][k%6],wall=['#fff6ea','#fdeedd','#eef6ff','#f2fbf4','#fff0f6'][(k>>>3)%5],on=isOnline(id);
  const pet=((h&&h.pets)||[]).find(p=>SP[p.sp]);
  return `<svg class="hh" viewBox="0 0 120 110"><rect x="16" y="46" width="88" height="58" rx="6" fill="${wall}" stroke="${mix(wall,'#7a4a2a',.25)}" stroke-width="2"/>
  <path d="M8 50 60 12l52 38z" fill="${roof}"/><path d="M8 50 60 12l52 38" stroke="${mix(roof,'#000000',.2)}" stroke-width="3" fill="none" stroke-linejoin="round"/>
@@ -55,7 +55,7 @@ function housesHtml(){const ids=S.friends||[];if(!ids.length)return '<p class="s
  const sorted=[...ids].sort((a,b)=>isOnline(b)-isOnline(a));
  return `<div class="houses">${sorted.map(id=>{const h=netHome(id),on=isOnline(id),mutual=h&&Array.isArray(h.friends)&&h.friends.includes(NET.uid);
   return `<div class="hs ${on?'on':''}" data-house="${esc(id)}" role="button" tabindex="0" aria-label="拜訪 ${esc(nickOf(id))} 的家">${houseSvg(id,h)}<span class="dot"></span><button type="button" class="x" data-unf="${esc(id)}" aria-label="刪除好友">×</button><b>${esc(nickOf(id))}</b><small>${on?'在線上':mutual?'不在線上':'等待對方加你'}</small></div>`}).join('')}</div>`}
-const _rf2=renderFriends;renderFriends=function(){_rf2();if(NET.state!=='online')return;const B=$('frBody');
+const _rf2=renderFriends;renderFriends=function(){_rf2();if(NET.state!=='online')return;liveWatch();const B=$('frBody');
  const h3=[...B.querySelectorAll('h3')].find(x=>x.textContent.startsWith('我的好友'));if(!h3)return;
  const n=onlineFriends().length;h3.innerHTML=`我的好友小屋 <span class="small">${(S.friends||[]).length} / ${FR_MAX}</span> <span class="onl"><i></i>${n} 人在線</span>`;
  const nx=h3.nextElementSibling;const wrap=document.createElement('div');wrap.innerHTML=housesHtml();if(nx)nx.replaceWith(wrap);else h3.after(wrap);
