@@ -252,7 +252,5 @@ lifeTick();fetchWx();syncPets();
 // 雲端存檔載入時補上新欄位
 const _norm2=normalize;normalize=function(s){s=_norm2(s);if(!s.roomDecor)s.roomDecor={};['dining','bath','play'].forEach(k=>{if(!s.roomDecor[k])s.roomDecor[k]={items:[]}});
  if(!s.climate)s.climate={mode:'off',last:Date.now()};if(!s.owned.clothes)s.owned.clothes=[];(s.pets||[]).forEach(p=>{if(!p.awakeSince)p.awakeSince=Date.now()});
- if(window._signup&&!s.bonus20k){s.bonus20k=1;s.coins=(s.coins||0)+20000;setTimeout(()=>toast('註冊成功！送你 20000 金幣當見面禮 🎁'),800)}return s};
-// 新註冊送 20000 金幣
-if(typeof fbLogin==='function'){const _fbl=fbLogin;fbLogin=async function(kind,e,p){if(kind==='up')window._signup=1;const r=await _fbl(kind,e,p);if(r&&kind==='up')window._signup=0;
- if(!r&&kind==='up')setTimeout(()=>{if(!S.bonus20k){S.bonus20k=1;S.coins+=20000;save();render();toast('註冊成功！送你 20000 金幣當見面禮')}},4000);return r}}
+ return s};
+// 新註冊：新存檔本來就有 20000 金幣（app.js），這裡不再重複發放
