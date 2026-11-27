@@ -46,7 +46,9 @@
 
 程式已經做好：用「帳號名稱＋密碼」註冊，不需要電子郵件或手機，不蒐集個資（內部會轉成 `名稱@player.gameforan-37213.web.app` 這種不會收信的格式給 Firebase 登入用；以前用電子郵件註冊的帳號照常可以登入）；密碼要 8 個字以上、含英文和數字；密碼連錯 5 次暫時鎖定；選單「帳號安全」可以改密碼、刪除帳號；網站送出 HTTPS 強制（HSTS）、防嵌入（X-Frame-Options）、內容安全政策（CSP）等安全標頭。
 
-以下要在 Firebase／Google Cloud 主控台設定：
+**自動化**：`.github/workflows/firebase-setup.yml` 會自動部署資料庫規則，並設定密碼政策（至少 8 字含數字）、保持「電子郵件/密碼」登入開啟、開啟帳號列舉保護。只要在 Google Cloud → IAM 替部署用的服務帳戶加上「Firebase 管理員」角色一次，之後就會自動套用（也可以在 GitHub Actions 手動按「Run workflow」）。
+
+以下是手動設定的方式（自動化成功的項目可以略過）：
 
 1. **Firestore 規則**：把 `firestore.rules` 整份貼到 Firestore →「規則」並發布。
 2. **Authentication → 設定 → 已授權網域**：只留 `gameforan-37213.web.app`、`gameforan-37213.firebaseapp.com`（和自訂網域）；不用的 `localhost` 可以刪掉。

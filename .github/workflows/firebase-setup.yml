@@ -1,0 +1,67 @@
+name: Firebase 資料庫規則與帳號設定
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [firestore.rules, .github/workflows/firebase-setup.yml]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 讀取服務帳戶金鑰
+        id: sa
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa.json" >> "$GITHUB_ENV"
+          echo "project=$(jq -r .project_id "$RUNNER_TEMP/sa.json")" >> "$GITHUB_OUTPUT"
+          echo "email=$(jq -r .client_email "$RUNNER_TEMP/sa.json")" >> "$GITHUB_OUTPUT"
+
+      - name: 1. 部署資料庫安全規則
+        id: rules
+        continue-on-error: true
+        env:
+          PID: ${{ steps.sa.outputs.project }}
+        run: npx -y firebase-tools@13 deploy --only firestore:rules --project "$PID" --non-interactive
+
+      - name: 2. 帳號設定（電子郵件/密碼登入保持開啟、密碼至少 8 字含數字、防止帳號被列舉）
+        id: auth
+        continue-on-error: true
+        env:
+          PID: ${{ steps.sa.outputs.project }}
+        run: |
+          gcloud auth activate-service-account --key-file="$RUNNER_TEMP/sa.json" --quiet
+          TOKEN=$(gcloud auth print-access-token)
+          URL="https://identitytoolkit.googleapis.com/admin/v2/projects/$PID/config"
+          call(){ code=$(curl -s -o "$RUNNER_TEMP/out.json" -w '%{http_code}' -X PATCH "$URL?updateMask=$1" -H "Authorization: Bearer $TOKEN" -H "x-goog-user-project: $PID" -H 'Content-Type: application/json' -d "$2"); echo "$1 → HTTP $code"; [ "$code" = 200 ] || { jq -c '.error|{code,message}' "$RUNNER_TEMP/out.json"; return 1; }; }
+          ok=0
+          call 'signIn.email.enabled,signIn.email.passwordRequired' '{"signIn":{"email":{"enabled":true,"passwordRequired":true}}}' || ok=1
+          call 'passwordPolicyConfig' '{"passwordPolicyConfig":{"passwordPolicyEnforcementState":"ENFORCE","forceUpgradeOnSignin":false,"passwordPolicyVersions":[{"customStrengthOptions":{"minPasswordLength":8,"containsNumericCharacter":true}}]}}' || ok=1
+          call 'emailPrivacyConfig.enableImprovedEmailPrivacy' '{"emailPrivacyConfig":{"enableImprovedEmailPrivacy":true}}' || ok=1
+          exit $ok
+
+      - name: 結果
+        if: always()
+        env:
+          RULES: ${{ steps.rules.outcome }}
+          AUTH: ${{ steps.auth.outcome }}
+          SAEMAIL: ${{ steps.sa.outputs.email }}
+        run: |
+          {
+            echo "### Firebase 設定結果"
+            echo "- 資料庫安全規則：$([ "$RULES" = success ] && echo 已套用 || echo 沒有權限)"
+            echo "- 帳號設定（密碼政策等）：$([ "$AUTH" = success ] && echo 已套用 || echo 沒有權限)"
+            if [ "$RULES" != success ] || [ "$AUTH" != success ]; then
+              echo ""
+              echo "請到 Google Cloud 主控台 → IAM，替服務帳戶 \`$SAEMAIL\` 加上「Firebase 管理員」（roles/firebase.admin）角色，然後重新執行這個流程。"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$RULES" != success ] || [ "$AUTH" != success ]; then echo "::warning::服務帳戶 $SAEMAIL 缺少權限：請在 IAM 加上「Firebase 管理員」角色後重新執行"; fi
